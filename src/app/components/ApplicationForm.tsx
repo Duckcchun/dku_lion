@@ -418,7 +418,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
             <div className="space-y-6">
               <div>
                 <Label htmlFor="schedule">2025년 계획표 *</Label>
-                <p className="text-xs text-muted-foreground mb-2 mt-1">
+                <p className="text-sm text-muted-foreground mb-2 mt-1">
                   {track === "baby"
                     ? "멋쟁이사자처럼은 매주 수요일 세션과 여름방학 해커톤이 진행됩니다. 학업, 알바, 타 동아리 등 병행해야 할 주요 일정을 솔직하게 적어주세요."
                     : "운영진은 정기 세션 외에도 운영 회의 및 행사 기획에 참여해야 합니다. 1년간 중도 이탈 없이 책임감 있게 활동 가능한지 판단하기 위해 예정된 일정을 구체적으로 적어주세요."}
@@ -492,7 +492,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
               <div className="space-y-6">
                 <div>
                   <Label>관심 분야 (필수) *</Label>
-                  <p className="text-xs text-muted-foreground mb-3 mt-1">
+                  <p className="text-sm text-muted-foreground mb-3 mt-1">
                     가장 배우고 싶은 분야를 선택해주세요.
                   </p>
                   <RadioGroup
@@ -529,7 +529,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
                 <div>
                   <Label>코딩 경험 (선택)</Label>
-                  <p className="text-xs text-muted-foreground mb-3 mt-1">
+                  <p className="text-sm text-muted-foreground mb-3 mt-1">
                     프로그래밍을 접해본 경험이 있나요? (없어도 무관합니다)
                   </p>
                   <RadioGroup
@@ -560,7 +560,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
                 <div>
                   <Label>활동 경력</Label>
-                  <p className="text-xs text-muted-foreground mb-2 mt-1">
+                  <p className="text-sm text-muted-foreground mb-2 mt-1">
                     동아리, 알바, 혹은 본인이 무언가에 푹 빠져서 했던 활동이 있다면 적어주세요.
                   </p>
                   <div className="space-y-2">
@@ -632,7 +632,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
                 <div>
                   <Label htmlFor="techStack">기술 스택 (상세 입력) *</Label>
-                  <p className="text-xs text-muted-foreground mb-2 mt-1">
+                  <p className="text-sm text-muted-foreground mb-2 mt-1">
                     본인이 활용할 수 있는 기술 스택(언어, 프레임워크, 툴 등)을 구체적으로 나열해 주세요.
                   </p>
                   <Textarea
@@ -646,7 +646,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
                 <div>
                   <Label htmlFor="portfolio">포트폴리오 (필수) *</Label>
-                  <p className="text-xs text-muted-foreground mb-2 mt-1">
+                  <p className="text-sm text-muted-foreground mb-2 mt-1">
                     본인의 역량을 보여줄 수 있는 GitHub, 블로그(Velog/Tistory), 노션, 혹은 포트폴리오 링크를 입력해주세요.
                   </p>
                   <Input
@@ -659,7 +659,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
                 <div>
                   <Label>활동 경력</Label>
-                  <p className="text-xs text-muted-foreground mb-2 mt-1">
+                  <p className="text-sm text-muted-foreground mb-2 mt-1">
                     동아리, 프로젝트 경험을 간단히 기술해주세요.
                   </p>
                   <div className="space-y-2">
