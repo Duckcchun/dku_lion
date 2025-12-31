@@ -10,6 +10,71 @@ const app = new Hono();
 app.use('*', cors());
 app.use('*', logger(console.log));
 
+// In-memory rate limiter (best-effort; resets on cold start)
+const rateLimitStore = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 60s
+const RATE_LIMIT_MAX = 20; // max requests per IP per window
+const TURNSTILE_VERIFY_URL = 'https://challenges.cloudflare.com/turnstile/v0/siteverify';
+
+function getClientIp(c: any) {
+  const xff = c.req.header('x-forwarded-for');
+  if (xff) return xff.split(',')[0].trim();
+  // fallback
+  // @ts-ignore - Deno conn
+  return c.req.raw?.conn?.remoteAddr?.hostname ?? 'unknown';
+}
+
+async function verifyTurnstile(token: string, ip: string) {
+  const secret = Deno.env.get('TURNSTILE_SECRET');
+  if (!secret) return { ok: true };
+  if (!token) return { ok: false, reason: 'missing token' };
+
+  const params = new URLSearchParams();
+  params.append('secret', secret);
+  params.append('response', token);
+  if (ip && ip !== 'unknown') params.append('remoteip', ip);
+
+  const resp = await fetch(TURNSTILE_VERIFY_URL, {
+    method: 'POST',
+    body: params,
+  });
+
+  const data = await resp.json();
+  if (!data.success) {
+    return { ok: false, reason: data['error-codes']?.join(',') ?? 'turnstile_failed' };
+  }
+
+  return { ok: true };
+}
+
+function checkRateLimit(c: any) {
+  const ip = getClientIp(c);
+  const now = Date.now();
+  const entry = rateLimitStore.get(ip);
+
+  if (!entry || entry.resetAt < now) {
+    rateLimitStore.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return null;
+  }
+
+  if (entry.count >= RATE_LIMIT_MAX) {
+    return { retryAfter: Math.max(0, Math.ceil((entry.resetAt - now) / 1000)) };
+  }
+
+  entry.count += 1;
+  return null;
+}
+
+function requireAdminToken(c: any) {
+  const expected = Deno.env.get('ADMIN_TOKEN');
+  const provided = c.req.header('x-admin-token');
+  if (!expected) return { status: 500, body: { error: 'ADMIN_TOKEN not configured' } };
+  if (!provided || provided.trim() !== expected.trim()) {
+    return { status: 401, body: { error: 'Unauthorized' } };
+  }
+  return null;
+}
+
 // Lazy Supabase client with env guard to return clearer errors when secrets are missing
 const getSupabase = () => {
   const url = Deno.env.get('SUPABASE_URL');
@@ -32,9 +97,22 @@ app.get('/server/make-server-5a2ed2de/health', (c) => {
 
 // Submit application
 app.post('/server/make-server-5a2ed2de/applications', async (c) => {
+  const limit = checkRateLimit(c);
+  if (limit) {
+    return c.json({ error: 'Too many requests' }, 429, {
+      'Retry-After': String(limit.retryAfter),
+    });
+  }
+
   try {
     const body = await c.req.json();
-    const { track, formData } = body;
+    const { track, formData, captchaToken } = body;
+
+    const ip = getClientIp(c);
+    const captcha = await verifyTurnstile(captchaToken, ip);
+    if (!captcha.ok) {
+      return c.json({ error: 'Captcha verification failed' }, 400);
+    }
 
     if (!track || !formData) {
       return c.json({ error: 'Missing required fields' }, 400);
@@ -98,6 +176,20 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
   } catch (error) {
     console.error('Error submitting application:', error);
     return c.json({ error: 'Failed to submit application', details: (error as Error).message }, 500);
+  }
+});
+
+// Admin: fetch applications (protected)
+app.get('/server/applications', async (c) => {
+  const auth = requireAdminToken(c);
+  if (auth) return c.json(auth.body, auth.status);
+
+  try {
+    const data = await kv.list();
+    return c.json({ applications: data });
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    return c.json({ error: 'Failed to fetch applications' }, 500);
   }
 });
 

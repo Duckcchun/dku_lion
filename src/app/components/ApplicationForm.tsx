@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -8,6 +8,26 @@ import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Card } from "./ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        el: HTMLElement,
+        options: {
+          sitekey: string;
+          callback: (token: string) => void;
+          "error-callback"?: () => void;
+          "expired-callback"?: () => void;
+          refreshExpired?: "auto" | "manual";
+          theme?: "light" | "dark";
+          size?: "normal" | "compact" | "invisible";
+          retry?: "auto" | "never";
+        }
+      ) => void;
+    };
+  }
+}
 
 interface ApplicationFormProps {
   track: "baby" | "staff";
@@ -103,6 +123,10 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
   );
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+
+  const captchaRef = useRef<HTMLDivElement | null>(null);
+  const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITEKEY as string | undefined)?.trim();
 
   const trackName = track === "baby" ? "아기사자" : "운영진";
   const storageKey = `likelion-14th-${track}-form`;
@@ -175,6 +199,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
       }
     }
 
+    if (turnstileSiteKey && !captchaToken) {
+      alert("스팸 방지 확인을 완료해주세요.");
+      return;
+    }
+
     setShowSubmitDialog(true);
   };
 
@@ -200,6 +229,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
             body: JSON.stringify({
               track,
               formData,
+              captchaToken,
             }),
           });
 
@@ -246,6 +276,39 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
       setShowLoadDialog(true);
     }
   }, [storageKey]);
+
+  // Load Turnstile script & render widget
+  useEffect(() => {
+    if (!turnstileSiteKey || !captchaRef.current) return;
+
+    const renderWidget = () => {
+      if (window.turnstile && captchaRef.current) {
+        window.turnstile.render(captchaRef.current, {
+          sitekey: turnstileSiteKey,
+          callback: (token) => setCaptchaToken(token),
+          "error-callback": () => setCaptchaToken(null),
+          "expired-callback": () => setCaptchaToken(null),
+          refreshExpired: "auto",
+        });
+      }
+    };
+
+    const existing = document.querySelector(
+      'script[src="https://challenges.cloudflare.com/turnstile/v0/api.js"]'
+    );
+
+    if (existing) {
+      renderWidget();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js";
+    script.async = true;
+    script.defer = true;
+    script.onload = renderWidget;
+    document.head.appendChild(script);
+  }, [turnstileSiteKey]);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -751,6 +814,14 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
             </Card>
           )}
         </div>
+
+        {turnstileSiteKey && (
+          <Card className="p-4 border-dashed border-primary/30 bg-white">
+            <h3 className="text-lg mb-2 text-primary">스팸 방지 확인</h3>
+            <p className="text-sm text-muted-foreground mb-3">제출 전에 한 번만 확인해주세요.</p>
+            <div ref={captchaRef} className="flex justify-center" />
+          </Card>
+        )}
 
         {/* Floating Bottom Bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg py-4 z-50">

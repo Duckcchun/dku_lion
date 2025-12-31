@@ -20,9 +20,10 @@ interface Application {
 
 interface AdminDashboardProps {
   onBack: () => void;
+  adminToken: string;
 }
 
-export function AdminDashboard({ onBack }: AdminDashboardProps) {
+export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
@@ -38,6 +39,7 @@ export function AdminDashboard({ onBack }: AdminDashboardProps) {
         {
           headers: {
             Authorization: `Bearer ${publicAnonKey}`,
+            "x-admin-token": adminToken,
           },
         }
       );
