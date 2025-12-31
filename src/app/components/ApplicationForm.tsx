@@ -816,11 +816,9 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
         </div>
 
         {turnstileSiteKey && (
-          <Card className="p-4 border-dashed border-primary/30 bg-white">
-            <h3 className="text-lg mb-2 text-primary">스팸 방지 확인</h3>
-            <p className="text-sm text-muted-foreground mb-3">제출 전에 한 번만 확인해주세요.</p>
-            <div ref={captchaRef} className="flex justify-center" />
-          </Card>
+          <div className="flex justify-center py-6">
+            <div ref={captchaRef} className="min-h-[80px]" />
+          </div>
         )}
 
         {/* Floating Bottom Bar */}
