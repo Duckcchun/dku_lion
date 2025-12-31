@@ -29,7 +29,7 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
             <div className="flex flex-col items-center gap-2">
               <span className="text-2xl">🦁</span>
               <span className="text-xl">아기사자 지원하기</span>
-              <span className="text-sm opacity-90">웹 개발 입문</span>
+              <span className="text-sm opacity-90">개발 입문</span>
             </div>
           </Button>
 

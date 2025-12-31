@@ -45,7 +45,9 @@ export function SuccessPage({ onBackToHome }: SuccessPageProps) {
         <p className="text-sm text-muted-foreground mt-8">
           문의사항이 있으시면 아래로 연락주세요
           <br />
-          📧 likelion.dku@gmail.com
+          📧 qasw1733@gmail.com
+          <br />
+          📱 010-6286-1733
         </p>
       </div>
     </div>

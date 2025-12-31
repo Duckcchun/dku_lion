@@ -128,6 +128,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
   const captchaRef = useRef<HTMLDivElement | null>(null);
   const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITEKEY as string | undefined)?.trim();
 
+  const radioItemClass =
+    "h-5 w-5 rounded-full border-2 border-slate-300 transition-all data-[state=checked]:border-primary data-[state=checked]:bg-white data-[state=checked]:shadow-inner";
+  const checkboxClass =
+    "h-4 w-4 border-slate-300 data-[state=checked]:border-primary data-[state=checked]:bg-primary";
+
   const trackName = track === "baby" ? "아기사자" : "운영진";
   const storageKey = `likelion-14th-${track}-form`;
 
@@ -281,6 +286,8 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
   useEffect(() => {
     if (!turnstileSiteKey || !captchaRef.current) return;
 
+    if (captchaRef.current.querySelector('iframe')) return;
+
     const renderWidget = () => {
       if (window.turnstile && captchaRef.current) {
         window.turnstile.render(captchaRef.current, {
@@ -308,7 +315,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     script.defer = true;
     script.onload = renderWidget;
     document.head.appendChild(script);
-  }, [turnstileSiteKey]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -463,6 +470,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="interview-sat"
+                      className={checkboxClass}
                       checked={formData.interviewDates.includes("2월 22일(토)")}
                       onCheckedChange={() => toggleInterviewDate("2월 22일(토)")}
                     />
@@ -473,6 +481,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="interview-sun"
+                      className={checkboxClass}
                       checked={formData.interviewDates.includes("2월 23일(일)")}
                       onCheckedChange={() => toggleInterviewDate("2월 23일(일)")}
                     />
@@ -501,25 +510,25 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     className="space-y-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="frontend" id="interest-frontend" />
+                      <RadioGroupItem value="frontend" id="interest-frontend" className={radioItemClass} />
                       <label htmlFor="interest-frontend" className="text-sm cursor-pointer">
                         프론트엔드 (화면 구현)
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="backend" id="interest-backend" />
+                      <RadioGroupItem value="backend" id="interest-backend" className={radioItemClass} />
                       <label htmlFor="interest-backend" className="text-sm cursor-pointer">
                         백엔드 (데이터 처리)
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="design" id="interest-design" />
+                      <RadioGroupItem value="design" id="interest-design" className={radioItemClass} />
                       <label htmlFor="interest-design" className="text-sm cursor-pointer">
                         기획/디자인
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="unsure" id="interest-unsure" />
+                      <RadioGroupItem value="unsure" id="interest-unsure" className={radioItemClass} />
                       <label htmlFor="interest-unsure" className="text-sm cursor-pointer">
                         아직 잘 모르겠음
                       </label>
@@ -538,19 +547,19 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     className="space-y-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="none" id="exp-none" />
+                      <RadioGroupItem value="none" id="exp-none" className={radioItemClass} />
                       <label htmlFor="exp-none" className="text-sm cursor-pointer">
                         경험 없음 (완전 처음)
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="class" id="exp-class" />
+                      <RadioGroupItem value="class" id="exp-class" className={radioItemClass} />
                       <label htmlFor="exp-class" className="text-sm cursor-pointer">
                         교양/전공 수업만 들어봄
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="project" id="exp-project" />
+                      <RadioGroupItem value="project" id="exp-project" className={radioItemClass} />
                       <label htmlFor="exp-project" className="text-sm cursor-pointer">
                         독학이나 프로젝트를 해봄
                       </label>
@@ -604,25 +613,25 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     className="space-y-2 mt-2"
                   >
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="planning" id="pos-planning" />
+                      <RadioGroupItem value="planning" id="pos-planning" className={radioItemClass} />
                       <label htmlFor="pos-planning" className="text-sm cursor-pointer">
                         기획
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="frontend" id="pos-frontend" />
+                      <RadioGroupItem value="frontend" id="pos-frontend" className={radioItemClass} />
                       <label htmlFor="pos-frontend" className="text-sm cursor-pointer">
                         프론트엔드
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="backend" id="pos-backend" />
+                      <RadioGroupItem value="backend" id="pos-backend" className={radioItemClass} />
                       <label htmlFor="pos-backend" className="text-sm cursor-pointer">
                         백엔드
                       </label>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="design" id="pos-design" />
+                      <RadioGroupItem value="design" id="pos-design" className={radioItemClass} />
                       <label htmlFor="pos-design" className="text-sm cursor-pointer">
                         디자인
                       </label>
