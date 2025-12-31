@@ -87,53 +87,41 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
 
       {/* Info Section */}
       <section className="container mx-auto px-4 py-12 max-w-5xl">
-        <div className="grid md:grid-cols-2 gap-6 mb-12">
-          <Card className="p-6">
+        <div className="flex justify-center mb-12">
+          <Card className="p-6 w-full max-w-md">
             <h3 className="text-xl mb-4 text-primary">📅 주요 일정</h3>
             <div className="space-y-3 text-gray-700">
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between gap-6">
                 <span>서류 마감</span>
-                <span>2월 16일(일) 23:59</span>
+                <span className="text-primary text-right shrink-0">미정</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between gap-6">
                 <span>대면 면접</span>
-                <span>2월 22일(토) ~ 23일(일)</span>
+                <span className="text-primary text-right shrink-0">미정</span>
               </div>
-              <div className="flex justify-between items-center">
+              <div className="flex items-center justify-between gap-6">
                 <span>합격자 OT</span>
-                <span className="text-primary">3월 1일(토) 필수참여</span>
+                <span className="text-primary text-right shrink-0">미정</span>
               </div>
             </div>
-          </Card>
-
-          <Card className="p-6">
-            <h3 className="text-xl mb-4 text-primary">💰 회비 안내</h3>
-            <p className="text-3xl mb-2">10만 원</p>
-            <p className="text-sm text-muted-foreground">
-              회비는 전액 활동 운영비로 사용됩니다
-              <br />
-              (행사, 자료, 네트워킹 등)
-            </p>
           </Card>
         </div>
 
         {/* Footer */}
         <div className="text-center text-muted-foreground space-y-2">
           <p className="text-lg">문의하기</p>
-          <div className="flex flex-col md:flex-row justify-center gap-4 text-sm">
+          <div className="flex flex-col md:flex-row justify-center items-center gap-8 text-sm text-center">
             <a 
-              href="https://instagram.com/likelion_dankook" 
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-primary transition-colors"
+              href="tel:010-6286-1733"
+              className="inline-flex items-center gap-2 hover:text-primary transition-colors"
             >
-              📱 Instagram: @likelion_dankook
+              📱<span>Phone: 010-6286-1733</span>
             </a>
             <a 
-              href="mailto:likelion.dku@gmail.com"
-              className="hover:text-primary transition-colors"
+              href="mailto:qasw1733@gmail.com"
+              className="inline-flex items-center gap-2 hover:text-primary transition-colors"
             >
-              ✉️ Email: likelion.dku@gmail.com
+              ✉️<span>Email: qasw1733@gmail.com</span>
             </a>
           </div>
         </div>
