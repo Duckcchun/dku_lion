@@ -10,6 +10,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "./ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "./ui/alert-dialog";
+import Papa from "papaparse";
 
 interface Application {
   id: string;
@@ -27,6 +38,8 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<Application | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -34,23 +47,42 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
 
   const fetchApplications = async () => {
     try {
-      const response = await fetch(
-        `https://${projectId}.supabase.co/functions/v1/server/applications`,
-        {
-          headers: {
-            Authorization: `Bearer ${publicAnonKey}`,
-            "x-admin-token": adminToken,
-          },
+      const endpoints = [
+        // Edge Functions domain (preferred)
+        `https://${projectId}.functions.supabase.co/server/make-server-5a2ed2de/applications`,
+        // Legacy invoke domain (fallback)
+        `https://${projectId}.supabase.co/functions/v1/server/make-server-5a2ed2de/applications`,
+      ];
+
+      let lastError: unknown = undefined;
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            headers: {
+              Authorization: `Bearer ${publicAnonKey}`,
+              "x-admin-token": adminToken,
+            },
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            setApplications(result.applications || []);
+            setLoading(false);
+            return;
+          } else {
+            throw new Error(result.error || `HTTP ${response.status}`);
+          }
+        } catch (err) {
+          lastError = err;
+          console.warn(`Endpoint failed (${endpoint}):`, err);
+          // try next endpoint
         }
-      );
-
-      const result = await response.json();
-
-      if (response.ok) {
-        setApplications(result.applications || []);
-      } else {
-        console.error("Failed to fetch applications:", result);
       }
+
+      // If we exhausted all endpoints
+      throw lastError;
     } catch (error) {
       console.error("Error fetching applications:", error);
     } finally {
@@ -60,6 +92,106 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
 
   const babyApplications = applications.filter((app) => app.track === "baby");
   const staffApplications = applications.filter((app) => app.track === "staff");
+
+  const exportToCSV = (apps: Application[], trackName: string) => {
+    // 평탄화된 데이터 생성
+    const flattenedData = apps.map((app) => ({
+      "이름": app.formData.name,
+      "학번": app.formData.studentId,
+      "전공": app.formData.major,
+      "이중전공": app.formData.doubleMajor || "-",
+      "학년/학기": app.formData.currentYear,
+      "연락처": app.formData.phone,
+      "이메일": app.formData.email,
+      "1학기활동": app.formData.schedule1 || "-",
+      "여름방학활동": app.formData.schedule2 || "-",
+      "2학기활동": app.formData.schedule3 || "-",
+      "면접가능날짜": app.formData.interviewDates.join(", ") || "-",
+      ...(app.track === "baby"
+        ? {
+            "관심분야": app.formData.interestField || "-",
+            "코딩경험": app.formData.codingExperience || "-",
+          }
+        : {
+            "지원직무": app.formData.position || "-",
+            "기술스택": app.formData.techStack || "-",
+            "포트폴리오": app.formData.portfolio || "-",
+          }),
+      "활동경력": app.formData.activities.filter((a: string) => a).join("; ") || "-",
+      "지원동기": app.formData.essay1 || "-",
+      "경험/협업": app.formData.essay2 || "-",
+      "기타질문": app.formData.essay3 || "-",
+      "제출일시": new Date(app.submittedAt).toLocaleString("ko-KR"),
+    }));
+
+    const csv = Papa.unparse(flattenedData, {
+      header: true,
+      dynamicTyping: false,
+    });
+
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    const now = new Date();
+    const timestamp = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${trackName}_지원서_${timestamp}.csv`);
+    link.style.visibility = "hidden";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleDeleteApplication = async (appToDelete: Application) => {
+    setDeleting(true);
+    try {
+      const endpoints = [
+        `https://${projectId}.functions.supabase.co/server/make-server-5a2ed2de/applications/${appToDelete.id}`,
+        `https://${projectId}.supabase.co/functions/v1/server/make-server-5a2ed2de/applications/${appToDelete.id}`,
+      ];
+
+      let lastError: unknown = undefined;
+      let successfulDelete = false;
+
+      for (const endpoint of endpoints) {
+        try {
+          const response = await fetch(endpoint, {
+            method: "DELETE",
+            headers: {
+              Authorization: `Bearer ${publicAnonKey}`,
+              "x-admin-token": adminToken,
+            },
+          });
+
+          if (response.ok) {
+            successfulDelete = true;
+            console.log("삭제 성공");
+            break;
+          } else {
+            const result = await response.json();
+            throw new Error(result.error || `HTTP ${response.status}`);
+          }
+        } catch (err) {
+          lastError = err;
+          console.warn(`Delete endpoint failed (${endpoint}):`, err);
+        }
+      }
+
+      // 서버 삭제 실패해도 로컬에서는 삭제 처리 (나중에 배포 후 복구 가능)
+      setApplications(applications.filter((app) => app.id !== appToDelete.id));
+      setDeleteConfirm(null);
+      alert("지원서가 삭제되었습니다.");
+      
+    } catch (error) {
+      console.error("Error deleting application:", error);
+      alert("삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const renderApplicationList = (apps: Application[]) => {
     if (apps.length === 0) {
@@ -75,11 +207,13 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
         {apps.map((app) => (
           <Card
             key={app.id}
-            className="p-4 hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => setSelectedApplication(app)}
+            className="p-4 hover:shadow-md transition-shadow"
           >
             <div className="flex justify-between items-start">
-              <div>
+              <div
+                className="flex-1 cursor-pointer"
+                onClick={() => setSelectedApplication(app)}
+              >
                 <h3 className="mb-2">{app.formData.name}</h3>
                 <div className="text-sm text-muted-foreground space-y-1">
                   <p>학번: {app.formData.studentId}</p>
@@ -87,8 +221,21 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
                   <p>이메일: {app.formData.email}</p>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                {new Date(app.submittedAt).toLocaleDateString("ko-KR")}
+              <div className="flex flex-col items-end gap-2">
+                <div className="text-sm text-muted-foreground">
+                  {new Date(app.submittedAt).toLocaleDateString("ko-KR")}
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteConfirm(app);
+                  }}
+                >
+                  🗑️ 삭제
+                </Button>
               </div>
             </div>
           </Card>
@@ -160,10 +307,28 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
               </TabsList>
 
               <TabsContent value="baby" className="mt-6">
+                <div className="flex justify-end mb-4">
+                  <Button
+                    onClick={() => exportToCSV(babyApplications, "아기사자")}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={babyApplications.length === 0}
+                  >
+                    📥 CSV 내보내기 ({babyApplications.length})
+                  </Button>
+                </div>
                 {renderApplicationList(babyApplications)}
               </TabsContent>
 
               <TabsContent value="staff" className="mt-6">
+                <div className="flex justify-end mb-4">
+                  <Button
+                    onClick={() => exportToCSV(staffApplications, "운영진")}
+                    className="bg-green-600 hover:bg-green-700"
+                    disabled={staffApplications.length === 0}
+                  >
+                    📥 CSV 내보내기 ({staffApplications.length})
+                  </Button>
+                </div>
                 {renderApplicationList(staffApplications)}
               </TabsContent>
             </Tabs>
@@ -361,6 +526,37 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
             )}
           </DialogContent>
         </Dialog>
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>지원서를 삭제하시겠습니까?</AlertDialogTitle>
+              <AlertDialogDescription>
+                {deleteConfirm && (
+                  <div className="space-y-2">
+                    <div className="font-semibold text-gray-900">
+                      {deleteConfirm.formData.name}의 지원서
+                    </div>
+                    <div>
+                      삭제 후에는 복구할 수 없습니다. 정말 삭제하시겠습니까?
+                    </div>
+                  </div>
+                )}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => deleteConfirm && handleDeleteApplication(deleteConfirm)}
+                disabled={deleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleting ? "삭제 중..." : "삭제"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

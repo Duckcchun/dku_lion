@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LandingPage } from "./components/LandingPage";
 import { ApplicationForm } from "./components/ApplicationForm";
 import { SuccessPage } from "./components/SuccessPage";
@@ -15,6 +15,19 @@ export default function App() {
 
   const adminToken = (import.meta.env.VITE_ADMIN_TOKEN as string | undefined)?.trim();
   const showAdminEntry = (import.meta.env.VITE_SHOW_ADMIN_ENTRY as string | undefined) === "true";
+
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Cmd + Option + A (또는 Ctrl + Alt + A on Windows)
+      if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === "a") {
+        e.preventDefault();
+        handleAdminAccess();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, [adminToken]);
 
   const handleSelectTrack = (track: Track) => {
     setSelectedTrack(track);
@@ -56,20 +69,6 @@ export default function App() {
       {currentPage === "landing" && (
         <div>
           <LandingPage onSelectTrack={handleSelectTrack} />
-          {showAdminEntry && (
-            <div
-              style={{ position: "fixed", bottom: 12, right: 12 }}
-              className="opacity-80 hover:opacity-100 transition"
-            >
-              <button
-                type="button"
-                className="rounded-md border border-primary/40 bg-white px-3 py-2 text-sm text-primary shadow-sm hover:bg-primary/5"
-                onClick={handleAdminAccess}
-              >
-                관리자
-              </button>
-            </div>
-          )}
         </div>
       )}
       {currentPage === "application" && (

@@ -325,6 +325,34 @@ app.get('/server/make-server-5a2ed2de/applications/:id', async (c) => {
   }
 });
 
+// Delete application
+app.delete('/server/make-server-5a2ed2de/applications/:id', async (c) => {
+  try {
+    const id = c.req.param('id');
+    
+    if (!id) {
+      return c.json({ error: 'Missing application ID' }, 400);
+    }
+
+    // Delete from KV store
+    const supabase = getSupabase();
+    const { error } = await supabase
+      .from('kv_store_5a2ed2de')
+      .delete()
+      .eq('key', id);
+
+    if (error) {
+      return c.json({ error: 'Failed to delete application', details: error.message }, 500);
+    }
+
+    console.log(`Application deleted: ${id}`);
+    return c.json({ success: true, message: 'Application deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    return c.json({ error: 'Failed to delete application', details: (error as Error).message }, 500);
+  }
+});
+
 // Catch-all to surface the path that reached the function (for debugging 404s)
 app.all('*', (c) => {
   return c.json({ error: 'Not Found', path: c.req.path }, 404);
