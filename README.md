@@ -9,6 +9,10 @@
 ![Vite](https://img.shields.io/badge/Vite-B73BFE?style=for-the-badge&logo=vite&logoColor=FFD62E)
 
 **완전한 웹 기반 지원서 수집 및 관리 시스템**
+</div>
+<div align="center">
+
+[**🔗 사이트 바로가기**](https://dku-lion.vercel.app)
 
 </div>
 
