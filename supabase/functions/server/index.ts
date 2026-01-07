@@ -282,7 +282,7 @@ app.get('/server/applications', async (c) => {
   }
 });
 
-// PREVENT UPDATE/DELETE - Return 403 Forbidden
+// PREVENT UPDATE - Return 403 Forbidden (read-only)
 app.put('/server/applications/:id', async (c) => {
   const auth = requireAdminToken(c);
   if (auth) return c.json(auth.body, auth.status);
@@ -290,11 +290,19 @@ app.put('/server/applications/:id', async (c) => {
   return c.json({ error: 'Applications are read-only and cannot be modified' }, 403);
 });
 
+// Allow DELETE for admin only
 app.delete('/server/applications/:id', async (c) => {
   const auth = requireAdminToken(c);
   if (auth) return c.json(auth.body, auth.status);
   
-  return c.json({ error: 'Applications are read-only and cannot be deleted' }, 403);
+  try {
+    const id = c.req.param('id');
+    await kv.del(id);
+    return c.json({ success: true, message: 'Application deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting application:', error);
+    return c.json({ error: 'Failed to delete application' }, 500);
+  }
 });
 
 // Helper function to format email body
@@ -431,6 +439,10 @@ app.get('/server/make-server-5a2ed2de/applications/:id', async (c) => {
 
 // Delete application
 app.delete('/server/make-server-5a2ed2de/applications/:id', async (c) => {
+  // Require admin token
+  const auth = requireAdminToken(c);
+  if (auth) return c.json(auth.body, auth.status);
+  
   try {
     const id = c.req.param('id');
     

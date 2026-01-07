@@ -3,8 +3,9 @@ import { LandingPage } from "./components/LandingPage";
 import { ApplicationForm } from "./components/ApplicationForm";
 import { SuccessPage } from "./components/SuccessPage";
 import { AdminDashboard } from "./components/AdminDashboard";
+import { AdminLogin } from "./components/AdminLogin";
 
-type Page = "landing" | "application" | "success" | "admin";
+type Page = "landing" | "application" | "success" | "admin" | "admin-login";
 type Track = "baby" | "staff";
 
 export default function App() {
@@ -14,20 +15,19 @@ export default function App() {
   const [adminTokenValue, setAdminTokenValue] = useState<string | null>(null);
 
   const adminToken = (import.meta.env.VITE_ADMIN_TOKEN as string | undefined)?.trim();
-  const showAdminEntry = (import.meta.env.VITE_SHOW_ADMIN_ENTRY as string | undefined) === "true";
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // Cmd + Option + A (또는 Ctrl + Alt + A on Windows)
       if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === "a") {
         e.preventDefault();
-        handleAdminAccess();
+        setCurrentPage("admin-login");
       }
     };
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [adminToken]);
+  }, []);
 
   const handleSelectTrack = (track: Track) => {
     setSelectedTrack(track);
@@ -46,22 +46,16 @@ export default function App() {
     setCurrentPage("landing");
   };
 
-  // Admin access (gated by env flag + token)
-  const handleAdminAccess = () => {
-    if (!adminToken) {
-      alert("관리자 토큰이 설정되지 않았습니다. VITE_ADMIN_TOKEN을 환경변수에 넣어주세요.");
-      return;
-    }
+  const handleAdminLogin = (token: string) => {
+    setIsAdminAuthorized(true);
+    setAdminTokenValue(token);
+    setCurrentPage("admin");
+  };
 
-    const input = prompt("관리자 토큰을 입력하세요");
-
-    if (input && input.trim() === adminToken) {
-      setIsAdminAuthorized(true);
-      setAdminTokenValue(adminToken);
-      setCurrentPage("admin");
-    } else {
-      alert("토큰이 올바르지 않습니다.");
-    }
+  const handleAdminLogout = () => {
+    setIsAdminAuthorized(false);
+    setAdminTokenValue(null);
+    setCurrentPage("landing");
   };
 
   return (
@@ -81,9 +75,18 @@ export default function App() {
       {currentPage === "success" && (
         <SuccessPage onBackToHome={handleBackToHome} />
       )}
+      {currentPage === "admin-login" && (
+        <AdminLogin
+          onLogin={handleAdminLogin}
+          onBack={handleBackToHome}
+        />
+      )}
       {currentPage === "admin" && (
         isAdminAuthorized ? (
-          <AdminDashboard onBack={handleBackToHome} adminToken={adminTokenValue ?? ""} />
+          <AdminDashboard 
+            onBack={handleAdminLogout}
+            adminToken={adminTokenValue ?? ""} 
+          />
         ) : (
           <LandingPage onSelectTrack={handleSelectTrack} />
         )

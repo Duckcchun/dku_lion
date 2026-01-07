@@ -40,6 +40,7 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
   const [selectedApplication, setSelectedApplication] = useState<Application | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<Application | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
 
   useEffect(() => {
     fetchApplications();
@@ -193,6 +194,66 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
     }
   };
 
+  const handleDeleteAll = async () => {
+    setDeleting(true);
+    try {
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const app of applications) {
+        try {
+          const endpoints = [
+            `https://${projectId}.functions.supabase.co/server/make-server-5a2ed2de/applications/${app.id}`,
+            `https://${projectId}.supabase.co/functions/v1/server/make-server-5a2ed2de/applications/${app.id}`,
+          ];
+
+          let deleted = false;
+          for (const endpoint of endpoints) {
+            try {
+              const response = await fetch(endpoint, {
+                method: "DELETE",
+                headers: {
+                  Authorization: `Bearer ${publicAnonKey}`,
+                  "x-admin-token": adminToken,
+                },
+              });
+
+              if (response.ok) {
+                deleted = true;
+                successCount++;
+                break;
+              }
+            } catch (err) {
+              console.warn(`Delete endpoint failed (${endpoint}):`, err);
+            }
+          }
+
+          if (!deleted) {
+            failCount++;
+          }
+        } catch (err) {
+          console.error(`Failed to delete ${app.id}:`, err);
+          failCount++;
+        }
+      }
+
+      // 로컬에서 모두 삭제
+      setApplications([]);
+      setShowDeleteAllConfirm(false);
+      
+      if (failCount > 0) {
+        alert(`${successCount}개 삭제 성공, ${failCount}개 실패했습니다.`);
+      } else {
+        alert(`모든 지원서 ${successCount}개가 삭제되었습니다.`);
+      }
+    } catch (error) {
+      console.error("Error deleting all applications:", error);
+      alert("전체 삭제 중 오류가 발생했습니다.");
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const renderApplicationList = (apps: Application[]) => {
     if (apps.length === 0) {
       return (
@@ -234,7 +295,7 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
                     setDeleteConfirm(app);
                   }}
                 >
-                  🗑️ 삭제
+                  삭제
                 </Button>
               </div>
             </div>
@@ -253,9 +314,20 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
           </Button>
           <div className="flex justify-between items-center">
             <h1 className="text-3xl text-primary">지원서 관리 대시보드</h1>
-            <Button variant="outline" onClick={fetchApplications}>
-              새로고침
-            </Button>
+            <div className="flex gap-2">
+              {applications.length > 0 && (
+                <Button
+                  variant="destructive"
+                  onClick={() => setShowDeleteAllConfirm(true)}
+                  disabled={deleting}
+                >
+                  전체 삭제
+                </Button>
+              )}
+              <Button variant="outline" onClick={fetchApplications}>
+                새로고침
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -557,7 +629,34 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
-      </div>
+        {/* Delete All Confirmation Dialog */}
+        <AlertDialog open={showDeleteAllConfirm} onOpenChange={setShowDeleteAllConfirm}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>모든 지원서를 삭제하시겠습니까?</AlertDialogTitle>
+              <AlertDialogDescription>
+                <div className="space-y-2">
+                  <div className="font-semibold text-gray-900">
+                    총 {applications.length}개의 지원서가 삭제됩니다.
+                  </div>
+                  <div>
+                    삭제 후에는 복구할 수 없습니다. 정말 모두 삭제하시겠습니까?
+                  </div>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={deleting}>취소</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteAll}
+                disabled={deleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleting ? "삭제 중..." : "모두 삭제"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>      </div>
     </div>
   );
 }
