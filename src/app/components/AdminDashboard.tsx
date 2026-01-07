@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+import { createClient } from "@supabase/supabase-js";
 import {
   Dialog,
   DialogContent,
@@ -41,6 +42,12 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<Application | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+
+  // Supabase client - useMemo로 한 번만 생성
+  const supabase = useMemo(
+    () => createClient(`https://${projectId}.supabase.co`, publicAnonKey),
+    []
+  );
 
   useEffect(() => {
     fetchApplications();
@@ -149,43 +156,20 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
   const handleDeleteApplication = async (appToDelete: Application) => {
     setDeleting(true);
     try {
-      const endpoints = [
-        `https://${projectId}.functions.supabase.co/server/make-server-5a2ed2de/applications/${appToDelete.id}`,
-        `https://${projectId}.supabase.co/functions/v1/server/make-server-5a2ed2de/applications/${appToDelete.id}`,
-      ];
+      // 직접 Supabase에서 삭제
+      const { error } = await supabase
+        .from('kv_store_5a2ed2de')
+        .delete()
+        .eq('key', appToDelete.id);
 
-      let lastError: unknown = undefined;
-      let successfulDelete = false;
-
-      for (const endpoint of endpoints) {
-        try {
-          const response = await fetch(endpoint, {
-            method: "DELETE",
-            headers: {
-              Authorization: `Bearer ${publicAnonKey}`,
-              "x-admin-token": adminToken,
-            },
-          });
-
-          if (response.ok) {
-            successfulDelete = true;
-            console.log("삭제 성공");
-            break;
-          } else {
-            const result = await response.json();
-            throw new Error(result.error || `HTTP ${response.status}`);
-          }
-        } catch (err) {
-          lastError = err;
-          console.warn(`Delete endpoint failed (${endpoint}):`, err);
-        }
+      if (error) {
+        throw error;
       }
 
-      // 서버 삭제 실패해도 로컬에서는 삭제 처리 (나중에 배포 후 복구 가능)
+      // 로컬 상태에서 제거
       setApplications(applications.filter((app) => app.id !== appToDelete.id));
       setDeleteConfirm(null);
       alert("지원서가 삭제되었습니다.");
-      
     } catch (error) {
       console.error("Error deleting application:", error);
       alert("삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
@@ -202,35 +186,15 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
 
       for (const app of applications) {
         try {
-          const endpoints = [
-            `https://${projectId}.functions.supabase.co/server/make-server-5a2ed2de/applications/${app.id}`,
-            `https://${projectId}.supabase.co/functions/v1/server/make-server-5a2ed2de/applications/${app.id}`,
-          ];
+          const { error } = await supabase
+            .from('kv_store_5a2ed2de')
+            .delete()
+            .eq('key', app.id);
 
-          let deleted = false;
-          for (const endpoint of endpoints) {
-            try {
-              const response = await fetch(endpoint, {
-                method: "DELETE",
-                headers: {
-                  Authorization: `Bearer ${publicAnonKey}`,
-                  "x-admin-token": adminToken,
-                },
-              });
-
-              if (response.ok) {
-                deleted = true;
-                successCount++;
-                break;
-              }
-            } catch (err) {
-              console.warn(`Delete endpoint failed (${endpoint}):`, err);
-            }
+          if (error) {
+            throw error;
           }
-
-          if (!deleted) {
-            failCount++;
-          }
+          successCount++;
         } catch (err) {
           console.error(`Failed to delete ${app.id}:`, err);
           failCount++;
@@ -604,7 +568,7 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>지원서를 삭제하시겠습니까?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogDescription asChild>
                 {deleteConfirm && (
                   <div className="space-y-2">
                     <div className="font-semibold text-gray-900">
@@ -634,7 +598,7 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>모든 지원서를 삭제하시겠습니까?</AlertDialogTitle>
-              <AlertDialogDescription>
+              <AlertDialogDescription asChild>
                 <div className="space-y-2">
                   <div className="font-semibold text-gray-900">
                     총 {applications.length}개의 지원서가 삭제됩니다.

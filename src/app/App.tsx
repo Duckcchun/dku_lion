@@ -4,6 +4,7 @@ import { ApplicationForm } from "./components/ApplicationForm";
 import { SuccessPage } from "./components/SuccessPage";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { AdminLogin } from "./components/AdminLogin";
+import { Toaster } from "./components/ui/sonner";
 
 type Page = "landing" | "application" | "success" | "admin" | "admin-login";
 type Track = "baby" | "staff";
@@ -91,6 +92,7 @@ export default function App() {
           <LandingPage onSelectTrack={handleSelectTrack} />
         )
       )}
+      <Toaster position="top-center" richColors />
     </>
   );
 }

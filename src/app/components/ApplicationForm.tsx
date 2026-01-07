@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
@@ -7,6 +7,8 @@ import { Checkbox } from "./ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Card } from "./ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
+import { toast } from "sonner";
+import { createClient } from "@supabase/supabase-js";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 
 declare global {
@@ -136,6 +138,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
   const captchaRef = useRef<HTMLDivElement | null>(null);
   const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITEKEY as string | undefined)?.trim();
+
+  // Supabase 클라이언트
+  const supabase = useMemo(
+    () => createClient(`https://${projectId}.supabase.co`, publicAnonKey),
+    []
+  );
 
   const radioItemClass =
     "h-5 w-5 rounded-full border-2 border-slate-300 transition-all data-[state=checked]:border-primary data-[state=checked]:bg-white data-[state=checked]:shadow-inner";
@@ -279,66 +287,54 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
   const confirmSubmit = async () => {
     setIsSubmitting(true);
-    const endpoints = [
-      // Edge Functions domain (preferred)
-      `https://${projectId}.functions.supabase.co/server/make-server-5a2ed2de/applications`,
-      // Legacy invoke domain (fallback)
-      `https://${projectId}.supabase.co/functions/v1/server/make-server-5a2ed2de/applications`,
-    ];
 
     try {
-      let lastError: unknown = undefined;
+      // 고유 ID 생성
+      const applicationId = `${track}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-      for (const endpoint of endpoints) {
-        try {
-          const response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${publicAnonKey}`,
-            },
-            body: JSON.stringify({
-              track,
-              formData,
-              captchaToken,
-            }),
-          });
-
-          const contentType = response.headers.get("content-type") ?? "";
-          const responseBody = contentType.includes("application/json")
-            ? await response.json()
-            : await response.text();
-
-          if (!response.ok) {
-            const message =
-              typeof responseBody === "string"
-                ? responseBody
-                : responseBody?.error || `${response.status} ${response.statusText}`;
-            throw new Error(message);
+      // Supabase에 직접 저장
+      const { error } = await supabase
+        .from('kv_store_5a2ed2de')
+        .insert({
+          key: applicationId,
+          value: {
+            id: applicationId,
+            track,
+            formData,
+            submittedAt: new Date().toISOString(),
           }
+        });
 
-          console.log("Application submitted successfully:", responseBody);
-
-          // Clear localStorage
-          localStorage.removeItem(storageKey);
-          setShowSubmitDialog(false);
-          setIsSubmitting(false);
-          onSubmit();
-          return;
-        } catch (err) {
-          lastError = err;
-          console.warn(`Endpoint failed (${endpoint}):`, err);
-          // try next endpoint
-        }
+      if (error) {
+        throw new Error(error.message);
       }
 
-      // If we exhausted all endpoints
-      throw lastError;
+      console.log("Application submitted successfully:", applicationId);
+
+      // Clear localStorage
+      localStorage.removeItem(storageKey);
+      setShowSubmitDialog(false);
+      setIsSubmitting(false);
+      
+      // 성공 토스트
+      toast.success("지원서가 성공적으로 제출되었습니다! 🎉", {
+        description: "제출해주셔서 감사합니다. 곧 연락드리겠습니다.",
+        duration: 4000,
+      });
+      
+      onSubmit();
+      return;
 
     } catch (error) {
       console.error("Error submitting application:", error);
       const message = error instanceof Error ? error.message : "Unknown error";
-      alert(`제출 중 오류가 발생했습니다. 다시 시도해주세요. (${message})`);
+      
+      // 에러 토스트
+      toast.error("제출 중 오류가 발생했습니다", {
+        description: message,
+        duration: 5000,
+      });
+      
       setIsSubmitting(false);
     }
   };

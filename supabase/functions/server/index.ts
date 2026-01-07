@@ -208,7 +208,15 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
       readonly: true,
     };
 
-    await kv.set(applicationId, applicationData);
+    console.log(`Attempting to store application: ${applicationId}`);
+    
+    try {
+      await kv.set(applicationId, applicationData);
+      console.log(`Application stored successfully: ${applicationId}`);
+    } catch (kvError) {
+      console.error('KV store error:', kvError);
+      throw new Error(`Failed to store application: ${(kvError as Error).message}`);
+    }
 
     console.log(`Application submitted: ${applicationId}`);
 
@@ -450,22 +458,25 @@ app.delete('/server/make-server-5a2ed2de/applications/:id', async (c) => {
       return c.json({ error: 'Missing application ID' }, 400);
     }
 
-    // Delete from KV store
-    const supabase = getSupabase();
-    const { error } = await supabase
-      .from('kv_store_5a2ed2de')
-      .delete()
-      .eq('key', id);
+    console.log(`Attempting to delete application: ${id}`);
+    
+    // Delete from KV store using kv.del
+    await kv.del(id);
 
-    if (error) {
-      return c.json({ error: 'Failed to delete application', details: error.message }, 500);
-    }
-
-    console.log(`Application deleted: ${id}`);
+    console.log(`Application deleted successfully: ${id}`);
     return c.json({ success: true, message: 'Application deleted successfully' });
   } catch (error) {
     console.error('Error deleting application:', error);
-    return c.json({ error: 'Failed to delete application', details: (error as Error).message }, 500);
+    console.error('Error details:', {
+      message: (error as Error).message,
+      stack: (error as Error).stack,
+      name: (error as Error).name
+    });
+    return c.json({ 
+      error: 'Failed to delete application', 
+      details: (error as Error).message,
+      name: (error as Error).name
+    }, 500);
   }
 });
 
