@@ -565,22 +565,22 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     <Checkbox
                       id="interview-sat"
                       className={checkboxClass}
-                      checked={formData.interviewDates.includes("2월 22일(토)")}
-                      onCheckedChange={() => toggleInterviewDate("2월 22일(토)")}
+                      checked={formData.interviewDates.includes("3월 12일(목)")}
+                      onCheckedChange={() => toggleInterviewDate("3월 12일(목)")}
                     />
                     <label htmlFor="interview-sat" className="text-sm cursor-pointer">
-                      2월 22일(토)
+                      3월 12일(목)
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="interview-sun"
                       className={checkboxClass}
-                      checked={formData.interviewDates.includes("2월 23일(일)")}
-                      onCheckedChange={() => toggleInterviewDate("2월 23일(일)")}
+                      checked={formData.interviewDates.includes("3월 13일(금)")}
+                      onCheckedChange={() => toggleInterviewDate("3월 13일(금)")}
                     />
                     <label htmlFor="interview-sun" className="text-sm cursor-pointer">
-                      2월 23일(일)
+                      3월 13일(금)
                     </label>
                   </div>
                 </div>
@@ -668,7 +668,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
 
                 <div>
-                  <Label>활동 경력</Label>
+                  <Label>활동 경력 (선택)</Label>
                   <p className="text-sm text-muted-foreground mb-2 mt-1">
                     동아리, 알바, 혹은 본인이 무언가에 푹 빠져서 했던 활동이 있다면 적어주세요.
                   </p>
@@ -778,7 +778,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
 
                 <div>
-                  <Label>활동 경력</Label>
+                  <Label>활동 경력 (선택)</Label>
                   <p className="text-sm text-muted-foreground mb-2 mt-1">
                     동아리, 프로젝트 경험을 간단히 기술해주세요.
                   </p>

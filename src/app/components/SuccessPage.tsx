@@ -30,12 +30,29 @@ export function SuccessPage({ onBackToHome }: SuccessPageProps) {
         </p>
 
         <div className="bg-blue-50 border border-primary/20 rounded-lg p-4 mb-8 text-sm text-left">
-          <p className="mb-2">
-            <strong className="text-primary">📅 면접 일정:</strong> 2월 22일(토) ~ 23일(일)
-          </p>
-          <p>
-            <strong className="text-primary">📍 합격자 OT:</strong> 3월 1일(토) 필수참여
-          </p>
+          <p className="font-semibold text-primary mb-3">📋 주요 일정</p>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">모집 마감</span>
+              <span className="font-semibold text-primary">3월 10일</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">서류 발표 ✨</span>
+              <span className="font-semibold text-primary">3월 11일</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">면접</span>
+              <span className="font-semibold text-primary">3월 12일 ~ 3월 13일</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">최종 발표 ✨</span>
+              <span className="font-semibold text-primary">3월 15일</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-700">아기사자 전체 OT</span>
+              <span className="font-semibold text-primary">3월 18일</span>
+            </div>
+          </div>
         </div>
 
         <Button onClick={onBackToHome} className="bg-primary hover:bg-primary/90">

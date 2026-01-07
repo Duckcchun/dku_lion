@@ -60,7 +60,7 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
             <div className="text-3xl mb-2">💻</div>
             <h3 className="text-xl mb-2 text-primary">정규 세션</h3>
             <p className="text-sm text-muted-foreground">
-              매주 수요일 진행되는<br />
+              매주 진행되는<br />
               프론트엔드/백엔드 교육
             </p>
           </Card>
@@ -93,15 +93,15 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
             <div className="space-y-3 text-gray-700">
               <div className="flex items-center justify-between gap-6">
                 <span>서류 마감</span>
-                <span className="text-primary text-right shrink-0">미정</span>
+                <span className="text-primary text-right shrink-0">3월 10일</span>
               </div>
               <div className="flex items-center justify-between gap-6">
                 <span>대면 면접</span>
-                <span className="text-primary text-right shrink-0">미정</span>
+                <span className="text-primary text-right shrink-0">3월 12일 ~ 3월 13일</span>
               </div>
               <div className="flex items-center justify-between gap-6">
                 <span>합격자 OT</span>
-                <span className="text-primary text-right shrink-0">미정</span>
+                <span className="text-primary text-right shrink-0">3월 18일</span>
               </div>
             </div>
           </Card>
