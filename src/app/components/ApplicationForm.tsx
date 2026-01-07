@@ -184,8 +184,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
       const staffData = formData as StaffFormData;
       if (!staffData.position) errors.position = "지원 직무를 선택해주세요";
       if (!staffData.techStack?.trim()) errors.techStack = "기술 스택은 필수입니다";
-      if (!staffData.portfolio?.trim()) errors.portfolio = "포트폴리오 링크는 필수입니다";
-      else if (!/^https?:\/\/.+/.test(staffData.portfolio))
+      if (staffData.portfolio?.trim() && !/^https?:\/\/.+/.test(staffData.portfolio))
         errors.portfolio = "유효한 URL 형식이 아닙니다 (https://로 시작해야 합니다)";
       if (!staffData.essay1?.trim()) errors.essay1 = "지원 동기 및 기여 방안은 필수입니다";
       if (!staffData.essay2?.trim()) errors.essay2 = "문제 해결 및 협업은 필수입니다";
@@ -762,7 +761,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
 
                 <div>
-                  <Label htmlFor="portfolio">포트폴리오 (필수) *</Label>
+                  <Label htmlFor="portfolio">포트폴리오 (선택)</Label>
                   <p className="text-sm text-muted-foreground mb-2 mt-1">
                     본인의 역량을 보여줄 수 있는 GitHub, 블로그(Velog/Tistory), 노션, 혹은 포트폴리오 링크를 입력해주세요.
                   </p>

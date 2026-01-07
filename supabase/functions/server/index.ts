@@ -182,8 +182,8 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
       if (!formData.techStack?.trim()) {
         return c.json({ error: 'Tech stack is required' }, 400);
       }
-      if (!formData.portfolio?.trim() || !/^https?:\/\/.+/.test(formData.portfolio)) {
-        return c.json({ error: 'Valid portfolio URL is required' }, 400);
+      if (formData.portfolio?.trim() && !/^https?:\/\/.+/.test(formData.portfolio)) {
+        return c.json({ error: 'Invalid portfolio URL format' }, 400);
       }
       if (!formData.essay1?.trim() || !formData.essay2?.trim() || !formData.essay3?.trim()) {
         return c.json({ error: 'All essays are required' }, 400);
