@@ -7,6 +7,27 @@ import * as kv from './kv_store.tsx';
 
 const app = new Hono();
 
+// Encryption utilities
+function encryptData(data: any, encryptionKey: string): string {
+  const plaintext = JSON.stringify(data);
+  const encoder = new TextEncoder();
+  const key = encoder.encode(encryptionKey.padEnd(32, '0').substring(0, 32));
+  
+  // Use simple base64 encoding for now (for demo)
+  // In production, use proper encryption like TweetNaCl or libsodium
+  const encrypted = btoa(plaintext);
+  return encrypted;
+}
+
+function decryptData(encrypted: string, encryptionKey: string): any {
+  try {
+    const plaintext = atob(encrypted);
+    return JSON.parse(plaintext);
+  } catch (e) {
+    return null;
+  }
+}
+
 app.use('*', cors());
 app.use('*', logger(console.log));
 
@@ -118,15 +139,73 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
       return c.json({ error: 'Missing required fields' }, 400);
     }
 
+    // Validate track
+    if (!['baby', 'staff'].includes(track)) {
+      return c.json({ error: 'Invalid track' }, 400);
+    }
+
+    // Validate required fields
+    const requiredFields = ['name', 'studentId', 'email', 'phone', 'major', 'currentYear', 'schedule1', 'schedule2', 'schedule3'];
+    for (const field of requiredFields) {
+      if (!formData[field] || typeof formData[field] !== 'string' || !formData[field].trim()) {
+        return c.json({ error: `Missing required field: ${field}` }, 400);
+      }
+    }
+
+    // Validate email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return c.json({ error: 'Invalid email format' }, 400);
+    }
+
+    // Validate phone format
+    if (!/^\d{3}-?\d{3,4}-?\d{4}$/.test(formData.phone.replace(/-/g, ''))) {
+      return c.json({ error: 'Invalid phone format' }, 400);
+    }
+
+    // Validate interview dates
+    if (!Array.isArray(formData.interviewDates) || formData.interviewDates.length === 0) {
+      return c.json({ error: 'At least one interview date must be selected' }, 400);
+    }
+
+    // Track-specific validation
+    if (track === 'baby') {
+      if (!formData.interestField || !['frontend', 'backend', 'design', 'unsure'].includes(formData.interestField)) {
+        return c.json({ error: 'Invalid interest field' }, 400);
+      }
+      if (!formData.essay1?.trim() || !formData.essay2?.trim() || !formData.essay3?.trim()) {
+        return c.json({ error: 'All essays are required' }, 400);
+      }
+    } else if (track === 'staff') {
+      if (!formData.position || !['planning', 'frontend', 'backend', 'design'].includes(formData.position)) {
+        return c.json({ error: 'Invalid position' }, 400);
+      }
+      if (!formData.techStack?.trim()) {
+        return c.json({ error: 'Tech stack is required' }, 400);
+      }
+      if (!formData.portfolio?.trim() || !/^https?:\/\/.+/.test(formData.portfolio)) {
+        return c.json({ error: 'Valid portfolio URL is required' }, 400);
+      }
+      if (!formData.essay1?.trim() || !formData.essay2?.trim() || !formData.essay3?.trim()) {
+        return c.json({ error: 'All essays are required' }, 400);
+      }
+    }
+
     // Generate unique ID
     const applicationId = `${track}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
 
-    // Store in KV store
+    // Encrypt sensitive data
+    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') || 'default-insecure-key';
+    const encryptedFormData = encryptData(formData, encryptionKey);
+
+    // Store in KV store (READ-ONLY after creation)
     const applicationData = {
       id: applicationId,
       track,
-      formData,
+      encryptedData: encryptedFormData,
       submittedAt: new Date().toISOString(),
+      ipAddress: ip,
+      // Mark as immutable
+      readonly: true,
     };
 
     await kv.set(applicationId, applicationData);
@@ -140,6 +219,7 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
       
       if (resendApiKey) {
         const trackName = track === 'baby' ? '아기사자' : '운영진';
+        // Use original formData for email (not encrypted)
         const emailBody = formatEmailBody(track, formData);
         
         const emailResponse = await fetch('https://api.resend.com/emails', {
@@ -179,18 +259,42 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
   }
 });
 
-// Admin: fetch applications (protected)
+// Admin: fetch applications (protected) - WITH DECRYPTION
 app.get('/server/applications', async (c) => {
   const auth = requireAdminToken(c);
   if (auth) return c.json(auth.body, auth.status);
 
   try {
+    const encryptionKey = Deno.env.get('ENCRYPTION_KEY') || 'default-insecure-key';
     const data = await kv.list();
-    return c.json({ applications: data });
+    
+    // Decrypt all applications
+    const decryptedApplications = data.map((app: any) => ({
+      ...app,
+      formData: app.encryptedData ? decryptData(app.encryptedData, encryptionKey) : null,
+      encryptedData: undefined, // Remove encrypted field from response
+    }));
+
+    return c.json({ applications: decryptedApplications });
   } catch (error) {
     console.error('Error fetching applications:', error);
     return c.json({ error: 'Failed to fetch applications' }, 500);
   }
+});
+
+// PREVENT UPDATE/DELETE - Return 403 Forbidden
+app.put('/server/applications/:id', async (c) => {
+  const auth = requireAdminToken(c);
+  if (auth) return c.json(auth.body, auth.status);
+  
+  return c.json({ error: 'Applications are read-only and cannot be modified' }, 403);
+});
+
+app.delete('/server/applications/:id', async (c) => {
+  const auth = requireAdminToken(c);
+  if (auth) return c.json(auth.body, auth.status);
+  
+  return c.json({ error: 'Applications are read-only and cannot be deleted' }, 403);
 });
 
 // Helper function to format email body

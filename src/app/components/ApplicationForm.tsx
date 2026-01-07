@@ -117,6 +117,10 @@ const INITIAL_STAFF_FORM_DATA: StaffFormData = {
   essay3: "",
 };
 
+interface ValidationErrors {
+  [key: string]: string;
+}
+
 export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProps) {
   const [formData, setFormData] = useState<BabyFormData | StaffFormData>(
     track === "baby" ? INITIAL_BABY_FORM_DATA : INITIAL_STAFF_FORM_DATA
@@ -124,6 +128,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
   const [showSubmitDialog, setShowSubmitDialog] = useState(false);
   const [showLoadDialog, setShowLoadDialog] = useState(false);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+  const [hasChanges, setHasChanges] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
 
   const captchaRef = useRef<HTMLDivElement | null>(null);
   const turnstileSiteKey = (import.meta.env.VITE_TURNSTILE_SITEKEY as string | undefined)?.trim();
@@ -135,6 +144,49 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
   const trackName = track === "baby" ? "아기사자" : "운영진";
   const storageKey = `likelion-14th-${track}-form`;
+
+  // Validation function
+  const validateForm = (): boolean => {
+    const errors: ValidationErrors = {};
+    
+    if (!formData.name?.trim()) errors.name = "성명은 필수입니다";
+    if (!formData.studentId?.trim()) errors.studentId = "학번은 필수입니다";
+    if (!formData.email?.trim()) errors.email = "이메일은 필수입니다";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      errors.email = "유효한 이메일 형식이 아닙니다";
+    
+    if (!formData.phone?.trim()) errors.phone = "연락처는 필수입니다";
+    else if (!/^\d{3}-?\d{3,4}-?\d{4}$/.test(formData.phone.replace(/-/g, "")))
+      errors.phone = "올바른 전화번호 형식이 아닙니다 (예: 010-1234-5678)";
+
+    if (!formData.currentYear?.trim()) errors.currentYear = "학년/학기는 필수입니다";
+    if (!formData.major?.trim()) errors.major = "전공은 필수입니다";
+    if (!formData.schedule1?.trim()) errors.schedule1 = "1학기 계획은 필수입니다";
+    if (!formData.schedule2?.trim()) errors.schedule2 = "여름방학 계획은 필수입니다";
+    if (!formData.schedule3?.trim()) errors.schedule3 = "2학기 계획은 필수입니다";
+    if (formData.interviewDates.length === 0) errors.interviewDates = "면접 가능 시간을 선택해주세요";
+    
+    if (track === "baby") {
+      const babyData = formData as BabyFormData;
+      if (!babyData.interestField) errors.interestField = "관심 분야를 선택해주세요";
+      if (!babyData.essay1?.trim()) errors.essay1 = "지원 동기는 필수입니다";
+      if (!babyData.essay2?.trim()) errors.essay2 = "몰입 경험은 필수입니다";
+      if (!babyData.essay3?.trim()) errors.essay3 = "만들고 싶은 서비스는 필수입니다";
+    } else {
+      const staffData = formData as StaffFormData;
+      if (!staffData.position) errors.position = "지원 직무를 선택해주세요";
+      if (!staffData.techStack?.trim()) errors.techStack = "기술 스택은 필수입니다";
+      if (!staffData.portfolio?.trim()) errors.portfolio = "포트폴리오 링크는 필수입니다";
+      else if (!/^https?:\/\/.+/.test(staffData.portfolio))
+        errors.portfolio = "유효한 URL 형식이 아닙니다 (https://로 시작해야 합니다)";
+      if (!staffData.essay1?.trim()) errors.essay1 = "지원 동기 및 기여 방안은 필수입니다";
+      if (!staffData.essay2?.trim()) errors.essay2 = "문제 해결 및 협업은 필수입니다";
+      if (!staffData.essay3?.trim()) errors.essay3 = "교육 및 운영 철학은 필수입니다";
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   // Load form data from localStorage
   const loadFormData = () => {
@@ -157,6 +209,15 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setHasChanges(true);
+    // Clear error for this field when user starts typing
+    if (validationErrors[field]) {
+      setValidationErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
   };
 
   const addActivity = () => {
@@ -190,18 +251,9 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
   };
 
   const handleSubmit = () => {
-    // Validation
-    if (!formData.name || !formData.studentId || !formData.email) {
-      alert("필수 정보를 모두 입력해주세요.");
+    if (!validateForm()) {
+      alert("필수 항목을 모두 입력해주세요. 빨간 표시된 항목을 확인해주세요.");
       return;
-    }
-
-    if (track === "staff") {
-      const staffData = formData as StaffFormData;
-      if (!staffData.portfolio) {
-        alert("포트폴리오 링크는 필수 입력 항목입니다.");
-        return;
-      }
     }
 
     if (turnstileSiteKey && !captchaToken) {
@@ -212,7 +264,21 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     setShowSubmitDialog(true);
   };
 
+  const handleBackClick = () => {
+    if (hasChanges) {
+      setShowExitConfirm(true);
+    } else {
+      onBack();
+    }
+  };
+
+  const confirmExit = () => {
+    localStorage.removeItem(storageKey);
+    onBack();
+  };
+
   const confirmSubmit = async () => {
+    setIsSubmitting(true);
     const endpoints = [
       // Edge Functions domain (preferred)
       `https://${projectId}.functions.supabase.co/server/make-server-5a2ed2de/applications`,
@@ -255,6 +321,8 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
           // Clear localStorage
           localStorage.removeItem(storageKey);
+          setShowSubmitDialog(false);
+          setIsSubmitting(false);
           onSubmit();
           return;
         } catch (err) {
@@ -271,6 +339,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
       console.error("Error submitting application:", error);
       const message = error instanceof Error ? error.message : "Unknown error";
       alert(`제출 중 오류가 발생했습니다. 다시 시도해주세요. (${message})`);
+      setIsSubmitting(false);
     }
   };
 
@@ -323,7 +392,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
         {/* Header */}
         <div className="mb-8 flex justify-between items-center">
           <div>
-            <Button variant="ghost" onClick={onBack} className="mb-4">
+            <Button variant="ghost" onClick={handleBackClick} className="mb-4">
               ← 뒤로가기
             </Button>
             <h1 className="text-3xl text-primary">14기 {trackName} 지원서 작성</h1>
@@ -345,8 +414,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                   value={formData.name}
                   onChange={(e) => updateField("name", e.target.value)}
                   placeholder="홍길동"
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.name ? "border-red-500 focus:ring-red-500" : ""}`}
                 />
+                {validationErrors.name && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.name}</p>
+                )}
               </div>
 
               <div>
@@ -356,8 +428,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                   value={formData.studentId}
                   onChange={(e) => updateField("studentId", e.target.value)}
                   placeholder="32xxxxxx"
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.studentId ? "border-red-500 focus:ring-red-500" : ""}`}
                 />
+                {validationErrors.studentId && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.studentId}</p>
+                )}
               </div>
 
               <div>
@@ -367,8 +442,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                   value={formData.currentYear}
                   onChange={(e) => updateField("currentYear", e.target.value)}
                   placeholder="예: 2학년 1학기 재학 예정"
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.currentYear ? "border-red-500 focus:ring-red-500" : ""}`}
                 />
+                {validationErrors.currentYear && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.currentYear}</p>
+                )}
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">
@@ -379,8 +457,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={formData.major}
                     onChange={(e) => updateField("major", e.target.value)}
                     placeholder="컴퓨터공학과"
-                    className="mt-2"
+                    className={`mt-2 ${validationErrors.major ? "border-red-500 focus:ring-red-500" : ""}`}
                   />
+                  {validationErrors.major && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.major}</p>
+                  )}
                 </div>
                 <div>
                   <Label htmlFor="doubleMajor">이중전공 (선택)</Label>
@@ -401,8 +482,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                   value={formData.phone}
                   onChange={(e) => updateField("phone", e.target.value)}
                   placeholder="010-xxxx-xxxx"
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.phone ? "border-red-500 focus:ring-red-500" : ""}`}
                 />
+                {validationErrors.phone && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.phone}</p>
+                )}
               </div>
 
               <div>
@@ -413,8 +497,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                   value={formData.email}
                   onChange={(e) => updateField("email", e.target.value)}
                   placeholder="example@dankook.ac.kr"
-                  className="mt-2"
+                  className={`mt-2 ${validationErrors.email ? "border-red-500 focus:ring-red-500" : ""}`}
                 />
+                {validationErrors.email && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.email}</p>
+                )}
               </div>
             </div>
           </Card>
@@ -438,7 +525,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                       onChange={(e) => updateField("schedule1", e.target.value)}
                       placeholder="학기 중 주요 일정을 입력해주세요"
                       rows={2}
+                      className={validationErrors.schedule1 ? "border-red-500 focus:ring-red-500" : ""}
                     />
+                    {validationErrors.schedule1 && (
+                      <p className="text-sm text-red-500 mt-1">{validationErrors.schedule1}</p>
+                    )}
                   </div>
                   <div>
                     <Label className="text-sm">여름방학</Label>
@@ -447,7 +538,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                       onChange={(e) => updateField("schedule2", e.target.value)}
                       placeholder="방학 중 주요 일정을 입력해주세요"
                       rows={2}
+                      className={validationErrors.schedule2 ? "border-red-500 focus:ring-red-500" : ""}
                     />
+                    {validationErrors.schedule2 && (
+                      <p className="text-sm text-red-500 mt-1">{validationErrors.schedule2}</p>
+                    )}
                   </div>
                   <div>
                     <Label className="text-sm">2학기</Label>
@@ -456,7 +551,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                       onChange={(e) => updateField("schedule3", e.target.value)}
                       placeholder="학기 중 주요 일정을 입력해주세요"
                       rows={2}
+                      className={validationErrors.schedule3 ? "border-red-500 focus:ring-red-500" : ""}
                     />
+                    {validationErrors.schedule3 && (
+                      <p className="text-sm text-red-500 mt-1">{validationErrors.schedule3}</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -490,6 +589,9 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     </label>
                   </div>
                 </div>
+                {validationErrors.interviewDates && (
+                  <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
+                )}
               </div>
             </div>
           </Card>
@@ -534,6 +636,9 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                       </label>
                     </div>
                   </RadioGroup>
+                  {validationErrors.interestField && (
+                    <p className="text-sm text-red-500 mt-2">{validationErrors.interestField}</p>
+                  )}
                 </div>
 
                 <div>
@@ -637,6 +742,9 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                       </label>
                     </div>
                   </RadioGroup>
+                  {validationErrors.position && (
+                    <p className="text-sm text-red-500 mt-2">{validationErrors.position}</p>
+                  )}
                 </div>
 
                 <div>
@@ -650,7 +758,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     onChange={(e) => updateField("techStack", e.target.value)}
                     placeholder="예: React, TypeScript, Spring Boot, MySQL, Adobe XD 등"
                     rows={3}
+                    className={validationErrors.techStack ? "border-red-500 focus:ring-red-500" : ""}
                   />
+                  {validationErrors.techStack && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.techStack}</p>
+                  )}
                 </div>
 
                 <div>
@@ -663,7 +775,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={(formData as StaffFormData).portfolio}
                     onChange={(e) => updateField("portfolio", e.target.value)}
                     placeholder="https://github.com/username 또는 https://velog.io/@username"
+                    className={validationErrors.portfolio ? "border-red-500 focus:ring-red-500" : ""}
                   />
+                  {validationErrors.portfolio && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.portfolio}</p>
+                  )}
                 </div>
 
                 <div>
@@ -714,9 +830,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={formData.essay1}
                     onChange={(e) => updateField("essay1", e.target.value)}
                     rows={8}
-                    className="mt-2"
+                    className={`mt-2 ${validationErrors.essay1 ? "border-red-500 focus:ring-red-500" : ""}`}
                     placeholder="지원 동기와 기대하는 성장 모습을 작성해주세요..."
                   />
+                  {validationErrors.essay1 && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay1}</p>
+                  )}
                   <p className="text-sm text-right text-muted-foreground mt-1">
                     {formData.essay1.length}/500자
                   </p>
@@ -732,9 +851,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={formData.essay2}
                     onChange={(e) => updateField("essay2", e.target.value)}
                     rows={10}
-                    className="mt-2"
+                    className={`mt-2 ${validationErrors.essay2 ? "border-red-500 focus:ring-red-500" : ""}`}
                     placeholder="몰입했던 경험과 그 과정에서 느낀 점을 구체적으로 작성해주세요..."
                   />
+                  {validationErrors.essay2 && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay2}</p>
+                  )}
                   <p className="text-sm text-right text-muted-foreground mt-1">
                     {formData.essay2.length}/600자
                   </p>
@@ -750,9 +872,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={formData.essay3}
                     onChange={(e) => updateField("essay3", e.target.value)}
                     rows={8}
-                    className="mt-2"
+                    className={`mt-2 ${validationErrors.essay3 ? "border-red-500 focus:ring-red-500" : ""}`}
                     placeholder="만들고 싶은 서비스에 대해 자유롭게 작성해주세요..."
                   />
+                  {validationErrors.essay3 && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay3}</p>
+                  )}
                   <p className="text-sm text-right text-muted-foreground mt-1">
                     {formData.essay3.length}/500자
                   </p>
@@ -776,9 +901,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={formData.essay1}
                     onChange={(e) => updateField("essay1", e.target.value)}
                     rows={10}
-                    className="mt-2"
+                    className={`mt-2 ${validationErrors.essay1 ? "border-red-500 focus:ring-red-500" : ""}`}
                     placeholder="지원 동기와 구체적인 기여 방안을 작성해주세요..."
                   />
+                  {validationErrors.essay1 && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay1}</p>
+                  )}
                   <p className="text-sm text-right text-muted-foreground mt-1">
                     {formData.essay1.length}/600자
                   </p>
@@ -794,9 +922,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={formData.essay2}
                     onChange={(e) => updateField("essay2", e.target.value)}
                     rows={12}
-                    className="mt-2"
+                    className={`mt-2 ${validationErrors.essay2 ? "border-red-500 focus:ring-red-500" : ""}`}
                     placeholder="문제 해결 경험을 구체적으로 작성해주세요..."
                   />
+                  {validationErrors.essay2 && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay2}</p>
+                  )}
                   <p className="text-sm text-right text-muted-foreground mt-1">
                     {formData.essay2.length}/800자
                   </p>
@@ -812,9 +943,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                     value={formData.essay3}
                     onChange={(e) => updateField("essay3", e.target.value)}
                     rows={10}
-                    className="mt-2"
+                    className={`mt-2 ${validationErrors.essay3 ? "border-red-500 focus:ring-red-500" : ""}`}
                     placeholder="교육 및 운영 철학을 작성해주세요..."
                   />
+                  {validationErrors.essay3 && (
+                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay3}</p>
+                  )}
                   <p className="text-sm text-right text-muted-foreground mt-1">
                     {formData.essay3.length}/600자
                   </p>
@@ -833,11 +967,27 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
         {/* Floating Bottom Bar */}
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg py-4 z-50">
           <div className="container mx-auto px-4 max-w-4xl flex gap-4 justify-end">
-            <Button variant="outline" onClick={saveFormData}>
+            <Button variant="outline" onClick={saveFormData} disabled={isSubmitting}>
               임시 저장
             </Button>
-            <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90">
-              제출하기
+            <Button 
+              onClick={handleSubmit} 
+              className="bg-primary hover:bg-primary/90 relative"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="opacity-0">제출하기</span>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="inline-flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span>제출 중...</span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                "제출하기"
+              )}
             </Button>
           </div>
         </div>
@@ -856,8 +1006,10 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>취소</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmSubmit}>제출</AlertDialogAction>
+            <AlertDialogCancel disabled={isSubmitting}>취소</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmSubmit} disabled={isSubmitting}>
+              {isSubmitting ? "제출 중..." : "제출"}
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -874,6 +1026,24 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
           <AlertDialogFooter>
             <AlertDialogCancel>새로 작성</AlertDialogCancel>
             <AlertDialogAction onClick={loadFormData}>불러오기</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Exit Confirmation Dialog */}
+      <AlertDialog open={showExitConfirm} onOpenChange={setShowExitConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>정말 나가시겠습니까?</AlertDialogTitle>
+            <AlertDialogDescription>
+              작성하신 내용이 삭제됩니다. 나가기 전에 '임시 저장'을 눌러주세요.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>계속 작성</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmExit} className="bg-red-600 hover:bg-red-700">
+              삭제하고 나가기
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
