@@ -18,16 +18,31 @@ export default function App() {
   const adminToken = (import.meta.env.VITE_ADMIN_TOKEN as string | undefined)?.trim();
 
   useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Cmd + Option + A (또는 Ctrl + Alt + A on Windows)
-      if ((e.ctrlKey || e.metaKey) && e.altKey && e.key === "a") {
-        e.preventDefault();
-        setCurrentPage("admin-login");
+    let shiftCount = 0;
+    let shiftTimer: NodeJS.Timeout;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Shift") {
+        shiftCount++;
+        
+        if (shiftCount === 5) {
+          e.preventDefault();
+          setCurrentPage("admin-login");
+          shiftCount = 0;
+        }
+        
+        clearTimeout(shiftTimer);
+        shiftTimer = setTimeout(() => {
+          shiftCount = 0;
+        }, 2000);
       }
     };
 
-    window.addEventListener("keydown", handleKeyPress);
-    return () => window.removeEventListener("keydown", handleKeyPress);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      clearTimeout(shiftTimer);
+    };
   }, []);
 
   const handleSelectTrack = (track: Track) => {
