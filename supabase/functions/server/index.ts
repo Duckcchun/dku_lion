@@ -23,22 +23,33 @@ function encryptData(data: any, encryptionKey: string): string {
 }
 
 function decryptData(encrypted: string, encryptionKey: string): any {
-  try {
-    // Decode base64
-    const binString = atob(encrypted);
-    
-    // Convert back to bytes
-    const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
-    
-    // Decode UTF-8
-    const decoder = new TextDecoder();
-    const plaintext = decoder.decode(bytes);
-    
-    return JSON.parse(plaintext);
-  } catch (e) {
-    console.error('Decryption failed:', e);
-    return null;
+  // Try multiple keys for backward compatibility
+  const keysToTry = [
+    encryptionKey,
+    'default-insecure-key'
+  ];
+  
+  for (const key of keysToTry) {
+    try {
+      // Decode base64
+      const binString = atob(encrypted);
+      
+      // Convert back to bytes
+      const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
+      
+      // Decode UTF-8
+      const decoder = new TextDecoder();
+      const plaintext = decoder.decode(bytes);
+      
+      return JSON.parse(plaintext);
+    } catch (e) {
+      // Try next key
+      continue;
+    }
   }
+  
+  console.error('Decryption failed with all keys');
+  return null;
 }
 
 app.use('*', cors());
