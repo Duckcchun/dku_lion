@@ -231,42 +231,50 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
 
     return (
       <div className="space-y-4">
-        {apps.map((app) => (
-          <Card
-            key={app.id}
-            className="p-4 hover:shadow-md transition-shadow"
-          >
-            <div className="flex justify-between items-start">
-              <div
-                className="flex-1 cursor-pointer"
-                onClick={() => setSelectedApplication(app)}
-              >
-                <h3 className="mb-2">{app.formData.name}</h3>
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>학번: {app.formData.studentId}</p>
-                  <p>전공: {app.formData.major}</p>
-                  <p>이메일: {app.formData.email}</p>
-                </div>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <div className="text-sm text-muted-foreground">
-                  {new Date(app.submittedAt).toLocaleDateString("ko-KR")}
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-red-600 hover:bg-red-50 hover:text-red-700"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setDeleteConfirm(app);
-                  }}
+        {apps.map((app) => {
+          // formData가 null이면 스킵
+          if (!app.formData) {
+            console.error("formData is null for application:", app.id);
+            return null;
+          }
+          
+          return (
+            <Card
+              key={app.id}
+              className="p-4 hover:shadow-md transition-shadow"
+            >
+              <div className="flex justify-between items-start">
+                <div
+                  className="flex-1 cursor-pointer"
+                  onClick={() => setSelectedApplication(app)}
                 >
-                  삭제
-                </Button>
+                  <h3 className="mb-2">{app.formData.name}</h3>
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>학번: {app.formData.studentId}</p>
+                    <p>전공: {app.formData.major}</p>
+                    <p>이메일: {app.formData.email}</p>
+                  </div>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <div className="text-sm text-muted-foreground">
+                    {new Date(app.submittedAt).toLocaleDateString("ko-KR")}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteConfirm(app);
+                    }}
+                  >
+                    삭제
+                  </Button>
+                </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
       </div>
     );
   };

@@ -36,6 +36,7 @@ function decryptData(encrypted: string, encryptionKey: string): any {
     
     return JSON.parse(plaintext);
   } catch (e) {
+    console.error('Decryption failed:', e);
     return null;
   }
 }
