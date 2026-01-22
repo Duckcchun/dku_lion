@@ -177,6 +177,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     if (track === "baby") {
       const babyData = formData as BabyFormData;
       if (!babyData.interestField) errors.interestField = "관심 분야를 선택해주세요";
+      if (babyData.interviewDates.length === 0) errors.interviewDates = "면접 가능 시간을 선택해주세요";
       if (!babyData.essay1?.trim()) errors.essay1 = "지원 동기는 필수입니다";
       if (!babyData.essay2?.trim()) errors.essay2 = "몰입 경험은 필수입니다";
       if (!babyData.essay3?.trim()) errors.essay3 = "만들고 싶은 서비스는 필수입니다";
@@ -184,8 +185,9 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
       const staffData = formData as StaffFormData;
       if (!staffData.position) errors.position = "지원 직무를 선택해주세요";
       if (!staffData.techStack?.trim()) errors.techStack = "기술 스택은 필수입니다";
-      if (staffData.portfolio?.trim() && !/^https?:\/\/.+/.test(staffData.portfolio))
-        errors.portfolio = "유효한 URL 형식이 아닙니다 (https://로 시작해야 합니다)";
+      // 포트폴리오는 완전히 선택사항 - 입력하지 않아도 됨
+      if (staffData.portfolio?.trim() && !/^https?:\/\//.test(staffData.portfolio))
+        errors.portfolio = "유효한 URL 형식입니다. https://로 시작해주세요.";
       if (!staffData.essay1?.trim()) errors.essay1 = "지원 동기 및 기여 방안은 필수입니다";
       if (!staffData.essay2?.trim()) errors.essay2 = "문제 해결 및 협업은 필수입니다";
       if (!staffData.essay3?.trim()) errors.essay3 = "교육 및 운영 철학은 필수입니다";
@@ -555,39 +557,41 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
               </div>
 
-              <div>
-                <Label>면접 가능 시간 *</Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                  가능한 날짜를 모두 선택해주세요.
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="interview-sat"
-                      className={checkboxClass}
-                      checked={formData.interviewDates.includes("3월 12일(목)")}
-                      onCheckedChange={() => toggleInterviewDate("3월 12일(목)")}
-                    />
-                    <label htmlFor="interview-sat" className="text-sm cursor-pointer">
-                      3월 12일(목)
-                    </label>
+              {track === "baby" && (
+                <div>
+                  <Label>면접 가능 시간 *</Label>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    가능한 날짜를 모두 선택해주세요.
+                  </p>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="interview-sat"
+                        className={checkboxClass}
+                        checked={formData.interviewDates.includes("3월 12일(목)")}
+                        onCheckedChange={() => toggleInterviewDate("3월 12일(목)")}
+                      />
+                      <label htmlFor="interview-sat" className="text-sm cursor-pointer">
+                        3월 12일(목)
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="interview-sun"
+                        className={checkboxClass}
+                        checked={formData.interviewDates.includes("3월 13일(금)")}
+                        onCheckedChange={() => toggleInterviewDate("3월 13일(금)")}
+                      />
+                      <label htmlFor="interview-sun" className="text-sm cursor-pointer">
+                        3월 13일(금)
+                      </label>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="interview-sun"
-                      className={checkboxClass}
-                      checked={formData.interviewDates.includes("3월 13일(금)")}
-                      onCheckedChange={() => toggleInterviewDate("3월 13일(금)")}
-                    />
-                    <label htmlFor="interview-sun" className="text-sm cursor-pointer">
-                      3월 13일(금)
-                    </label>
-                  </div>
+                  {validationErrors.interviewDates && (
+                    <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
+                  )}
                 </div>
-                {validationErrors.interviewDates && (
-                  <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
-                )}
-              </div>
+              )}
             </div>
           </Card>
 
@@ -761,15 +765,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
 
                 <div>
-                  <Label htmlFor="portfolio">포트폴리오 (선택)</Label>
-                  <p className="text-sm text-muted-foreground mb-2 mt-1">
-                    본인의 역량을 보여줄 수 있는 GitHub, 블로그(Velog/Tistory), 노션, 혹은 포트폴리오 링크를 입력해주세요.
-                  </p>
+                  <Label htmlFor="portfolio">포트폴리오</Label>
                   <Input
                     id="portfolio"
                     value={(formData as StaffFormData).portfolio}
                     onChange={(e) => updateField("portfolio", e.target.value)}
-                    placeholder="https://github.com/username 또는 https://velog.io/@username"
+                    placeholder=""
                     className={validationErrors.portfolio ? "border-red-500 focus:ring-red-500" : ""}
                   />
                   {validationErrors.portfolio && (
