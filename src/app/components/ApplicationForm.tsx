@@ -290,27 +290,30 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     setIsSubmitting(true);
 
     try {
-      // 고유 ID 생성
-      const applicationId = `${track}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-
-      // Supabase에 직접 저장
-      const { error } = await supabase
-        .from('kv_store_5a2ed2de')
-        .insert({
-          key: applicationId,
-          value: {
-            id: applicationId,
+      // Edge Function으로 제출 (메일 발송 포함)
+      const supabaseUrl = `https://${projectId}.supabase.co`;
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/server/make-server-5a2ed2de/applications`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${publicAnonKey}`,
+          },
+          body: JSON.stringify({
             track,
             formData,
-            submittedAt: new Date().toISOString(),
-          }
-        });
+            captchaToken,
+          }),
+        }
+      );
 
-      if (error) {
-        throw new Error(error.message);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Application submission failed');
       }
 
-      console.log("Application submitted successfully:", applicationId);
+      const result = await response.json();
 
       // Clear localStorage
       localStorage.removeItem(storageKey);

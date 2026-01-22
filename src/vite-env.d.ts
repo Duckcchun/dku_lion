@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_TURNSTILE_SITEKEY?: string;
   readonly VITE_ADMIN_TOKEN?: string;
   readonly VITE_SHOW_ADMIN_ENTRY?: string;
+  readonly VITE_SUPABASE_URL?: string;
 }
 
 interface ImportMeta {
