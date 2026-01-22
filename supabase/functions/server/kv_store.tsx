@@ -96,3 +96,13 @@ export const getByPrefix = async (prefix: string): Promise<any[]> => {
   }
   return data?.map((d) => d.value) ?? [];
 };
+
+// List all key-value pairs in the database.
+export const list = async (): Promise<any[]> => {
+  const supabase = client()
+  const { data, error } = await supabase.from("kv_store_5a2ed2de").select("value");
+  if (error) {
+    throw new Error(error.message);
+  }
+  return data?.map((d) => d.value) ?? [];
+};
