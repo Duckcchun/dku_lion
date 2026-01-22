@@ -279,7 +279,7 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
 });
 
 // Admin: fetch applications (protected) - WITH DECRYPTION
-app.get('/server/applications', async (c) => {
+app.get('/server/make-server-5a2ed2de/applications', async (c) => {
   const auth = requireAdminToken(c);
   if (auth) return c.json(auth.body, auth.status);
 
@@ -302,7 +302,7 @@ app.get('/server/applications', async (c) => {
 });
 
 // PREVENT UPDATE - Return 403 Forbidden (read-only)
-app.put('/server/applications/:id', async (c) => {
+app.put('/server/make-server-5a2ed2de/applications/:id', async (c) => {
   const auth = requireAdminToken(c);
   if (auth) return c.json(auth.body, auth.status);
   
@@ -310,7 +310,7 @@ app.put('/server/applications/:id', async (c) => {
 });
 
 // Allow DELETE for admin only
-app.delete('/server/applications/:id', async (c) => {
+app.delete('/server/make-server-5a2ed2de/applications/:id', async (c) => {
   const auth = requireAdminToken(c);
   if (auth) return c.json(auth.body, auth.status);
   
