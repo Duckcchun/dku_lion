@@ -11,17 +11,29 @@ const app = new Hono();
 function encryptData(data: any, encryptionKey: string): string {
   const plaintext = JSON.stringify(data);
   const encoder = new TextEncoder();
-  const key = encoder.encode(encryptionKey.padEnd(32, '0').substring(0, 32));
   
-  // Use simple base64 encoding for now (for demo)
-  // In production, use proper encryption like TweetNaCl or libsodium
-  const encrypted = btoa(plaintext);
+  // Convert string to UTF-8 bytes
+  const bytes = encoder.encode(plaintext);
+  
+  // Convert bytes to base64 (UTF-8 safe)
+  const binString = Array.from(bytes, (byte) => String.fromCodePoint(byte)).join("");
+  const encrypted = btoa(binString);
+  
   return encrypted;
 }
 
 function decryptData(encrypted: string, encryptionKey: string): any {
   try {
-    const plaintext = atob(encrypted);
+    // Decode base64
+    const binString = atob(encrypted);
+    
+    // Convert back to bytes
+    const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
+    
+    // Decode UTF-8
+    const decoder = new TextDecoder();
+    const plaintext = decoder.decode(bytes);
+    
     return JSON.parse(plaintext);
   } catch (e) {
     return null;
