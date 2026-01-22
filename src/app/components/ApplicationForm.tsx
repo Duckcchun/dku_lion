@@ -172,7 +172,6 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     if (!formData.schedule1?.trim()) errors.schedule1 = "1학기 계획은 필수입니다";
     if (!formData.schedule2?.trim()) errors.schedule2 = "여름방학 계획은 필수입니다";
     if (!formData.schedule3?.trim()) errors.schedule3 = "2학기 계획은 필수입니다";
-    if (formData.interviewDates.length === 0) errors.interviewDates = "면접 가능 시간을 선택해주세요";
     
     if (track === "baby") {
       const babyData = formData as BabyFormData;
