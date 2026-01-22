@@ -768,12 +768,15 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
 
                 <div>
-                  <Label htmlFor="portfolio">포트폴리오</Label>
+                  <Label htmlFor="portfolio">포트폴리오 (선택)</Label>
+                  <p className="text-sm text-muted-foreground mb-2 mt-1">
+                    본인의 GitHub, 블로그, 노션 등 포트폴리오 링크가 있다면 입력해주세요.
+                  </p>
                   <Input
                     id="portfolio"
                     value={(formData as StaffFormData).portfolio}
                     onChange={(e) => updateField("portfolio", e.target.value)}
-                    placeholder=""
+                    placeholder="https://github.com/username"
                     className={validationErrors.portfolio ? "border-red-500 focus:ring-red-500" : ""}
                   />
                   {validationErrors.portfolio && (
