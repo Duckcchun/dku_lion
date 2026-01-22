@@ -299,12 +299,25 @@ app.get('/server/make-server-5a2ed2de/applications', async (c) => {
     const encryptionKey = Deno.env.get('ENCRYPTION_KEY') || 'default-insecure-key';
     const data = await kv.list();
     
-    // Decrypt all applications
-    const decryptedApplications = data.map((app: any) => ({
-      ...app,
-      formData: app.encryptedData ? decryptData(app.encryptedData, encryptionKey) : null,
-      encryptedData: undefined, // Remove encrypted field from response
-    }));
+    // Decrypt all applications - support both encrypted and plain data
+    const decryptedApplications = data.map((app: any) => {
+      let formData = null;
+      
+      // If data is already decrypted (legacy format)
+      if (app.formData) {
+        formData = app.formData;
+      }
+      // If data is encrypted
+      else if (app.encryptedData) {
+        formData = decryptData(app.encryptedData, encryptionKey);
+      }
+      
+      return {
+        ...app,
+        formData,
+        encryptedData: undefined, // Remove encrypted field from response
+      };
+    });
 
     return c.json({ applications: decryptedApplications });
   } catch (error) {
