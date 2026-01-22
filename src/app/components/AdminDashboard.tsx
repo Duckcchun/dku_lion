@@ -42,6 +42,7 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
   const [deleteConfirm, setDeleteConfirm] = useState<Application | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Supabase client - useMemo로 한 번만 생성
   const supabase = useMemo(
@@ -93,6 +94,7 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
       throw lastError;
     } catch (error) {
       console.error("Error fetching applications:", error);
+      setError(`데이터를 불러오는데 실패했습니다: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -297,6 +299,11 @@ export function AdminDashboard({ onBack, adminToken }: AdminDashboardProps) {
 
         {loading ? (
           <div className="text-center py-12">로딩 중...</div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onClick={fetchApplications}>다시 시도</Button>
+          </div>
         ) : (
           <>
             {/* Statistics Cards */}
