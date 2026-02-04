@@ -49,7 +49,7 @@ export function SuccessPage({ onBackToHome }: SuccessPageProps) {
               <span className="font-semibold text-primary">3월 15일</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-700">아기사자 전체 OT</span>
+              <span className="text-gray-700">아기사자, 운영진 전체 OT</span>
               <span className="font-semibold text-primary">3월 18일</span>
             </div>
           </div>

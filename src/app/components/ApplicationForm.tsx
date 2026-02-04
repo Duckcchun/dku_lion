@@ -559,404 +559,228 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
               </div>
 
-              {track === "baby" && (
-                <div>
-                  <Label>면접 가능 시간 *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    가능한 날짜를 모두 선택해주세요.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-sat"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("3월 12일(목)")}
-                        onCheckedChange={() => toggleInterviewDate("3월 12일(목)")}
-                      />
-                      <label htmlFor="interview-sat" className="text-sm cursor-pointer">
-                        3월 12일(목)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-sun"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("3월 13일(금)")}
-                        onCheckedChange={() => toggleInterviewDate("3월 13일(금)")}
-                      />
-                      <label htmlFor="interview-sun" className="text-sm cursor-pointer">
-                        3월 13일(금)
-                      </label>
-                    </div>
+              <div>
+                <Label>면접 가능 시간 *</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  가능한 날짜를 모두 선택해주세요.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="interview-thu"
+                      className={checkboxClass}
+                      checked={formData.interviewDates.includes("3월 12일(목)")}
+                      onCheckedChange={() => toggleInterviewDate("3월 12일(목)")}
+                    />
+                    <label htmlFor="interview-thu" className="text-sm cursor-pointer">
+                      3월 12일(목)
+                    </label>
                   </div>
-                  {validationErrors.interviewDates && (
-                    <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
-                  )}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="interview-fri"
+                      className={checkboxClass}
+                      checked={formData.interviewDates.includes("3월 13일(금)")}
+                      onCheckedChange={() => toggleInterviewDate("3월 13일(금)")}
+                    />
+                    <label htmlFor="interview-fri" className="text-sm cursor-pointer">
+                      3월 13일(금)
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="interview-other"
+                      className={checkboxClass}
+                      checked={formData.interviewDates.includes("그 외 (다른 날짜)")}
+                      onCheckedChange={() => toggleInterviewDate("그 외 (다른 날짜)")}
+                    />
+                    <label htmlFor="interview-other" className="text-sm cursor-pointer">
+                      그 외 (다른 날짜)
+                    </label>
+                  </div>
                 </div>
-              )}
+                {validationErrors.interviewDates && (
+                  <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
+                )}
+              </div>
             </div>
           </Card>
 
-          {/* Section 3: Skills - BABY */}
-          {track === "baby" && (
-            <Card className="p-6">
-              <h2 className="text-2xl mb-6 text-primary">3. 역량 및 경험</h2>
-              <div className="space-y-6">
-                <div>
-                  <Label>관심 분야 (필수) *</Label>
-                  <p className="text-sm text-muted-foreground mb-3 mt-1">
-                    가장 배우고 싶은 분야를 선택해주세요.
-                  </p>
-                  <RadioGroup
-                    value={(formData as BabyFormData).interestField}
-                    onValueChange={(value) => updateField("interestField", value)}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="frontend" id="interest-frontend" className={radioItemClass} />
-                      <label htmlFor="interest-frontend" className="text-sm cursor-pointer">
-                        프론트엔드 (화면 구현)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="backend" id="interest-backend" className={radioItemClass} />
-                      <label htmlFor="interest-backend" className="text-sm cursor-pointer">
-                        백엔드 (데이터 처리)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="design" id="interest-design" className={radioItemClass} />
-                      <label htmlFor="interest-design" className="text-sm cursor-pointer">
-                        기획/디자인
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="unsure" id="interest-unsure" className={radioItemClass} />
-                      <label htmlFor="interest-unsure" className="text-sm cursor-pointer">
-                        아직 잘 모르겠음
-                      </label>
-                    </div>
-                  </RadioGroup>
-                  {validationErrors.interestField && (
-                    <p className="text-sm text-red-500 mt-2">{validationErrors.interestField}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>코딩 경험 (선택)</Label>
-                  <p className="text-sm text-muted-foreground mb-3 mt-1">
-                    프로그래밍을 접해본 경험이 있나요? (없어도 무관합니다)
-                  </p>
-                  <RadioGroup
-                    value={(formData as BabyFormData).codingExperience}
-                    onValueChange={(value) => updateField("codingExperience", value)}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="none" id="exp-none" className={radioItemClass} />
-                      <label htmlFor="exp-none" className="text-sm cursor-pointer">
-                        경험 없음 (완전 처음)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="class" id="exp-class" className={radioItemClass} />
-                      <label htmlFor="exp-class" className="text-sm cursor-pointer">
-                        교양/전공 수업만 들어봄
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="project" id="exp-project" className={radioItemClass} />
-                      <label htmlFor="exp-project" className="text-sm cursor-pointer">
-                        독학이나 프로젝트를 해봄
-                      </label>
-                    </div>
-                  </RadioGroup>
-                </div>
-
-                <div>
-                  <Label>활동 경력 (선택)</Label>
-                  <p className="text-sm text-muted-foreground mb-2 mt-1">
-                    동아리, 알바, 혹은 본인이 무언가에 푹 빠져서 했던 활동이 있다면 적어주세요.
-                  </p>
-                  <div className="space-y-2">
-                    {formData.activities.map((activity, index) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={activity}
-                          onChange={(e) => updateActivity(index, e.target.value)}
-                          placeholder="예: XX 동아리 부원 (2023~2024)"
-                        />
-                        {formData.activities.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => removeActivity(index)}
-                          >
-                            삭제
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    <Button type="button" variant="outline" onClick={addActivity} className="w-full">
-                      + 경력 추가
-                    </Button>
+          {/* Section 3: Skills */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-6 text-primary">3. 역량 및 경험</h2>
+            <div className="space-y-6">
+              <div>
+                <Label>관심 분야 (필수) *</Label>
+                <p className="text-sm text-muted-foreground mb-3 mt-1">
+                  가장 배우고 싶은 분야를 선택해주세요.
+                </p>
+                <RadioGroup
+                  value={(formData as BabyFormData).interestField}
+                  onValueChange={(value) => updateField("interestField", value)}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="frontend" id="interest-frontend" className={radioItemClass} />
+                    <label htmlFor="interest-frontend" className="text-sm cursor-pointer">
+                      프론트엔드 (화면 구현)
+                    </label>
                   </div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Section 3: Skills - STAFF */}
-          {track === "staff" && (
-            <Card className="p-6">
-              <h2 className="text-2xl mb-6 text-primary">3. 역량 및 경험</h2>
-              <div className="space-y-6">
-                <div>
-                  <Label>지원 직무 (필수) *</Label>
-                  <RadioGroup
-                    value={(formData as StaffFormData).position}
-                    onValueChange={(value) => updateField("position", value)}
-                    className="space-y-2 mt-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="planning" id="pos-planning" className={radioItemClass} />
-                      <label htmlFor="pos-planning" className="text-sm cursor-pointer">
-                        기획
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="frontend" id="pos-frontend" className={radioItemClass} />
-                      <label htmlFor="pos-frontend" className="text-sm cursor-pointer">
-                        프론트엔드
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="backend" id="pos-backend" className={radioItemClass} />
-                      <label htmlFor="pos-backend" className="text-sm cursor-pointer">
-                        백엔드
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="design" id="pos-design" className={radioItemClass} />
-                      <label htmlFor="pos-design" className="text-sm cursor-pointer">
-                        디자인
-                      </label>
-                    </div>
-                  </RadioGroup>
-                  {validationErrors.position && (
-                    <p className="text-sm text-red-500 mt-2">{validationErrors.position}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="techStack">기술 스택 (상세 입력) *</Label>
-                  <p className="text-sm text-muted-foreground mb-2 mt-1">
-                    본인이 활용할 수 있는 기술 스택(언어, 프레임워크, 툴 등)을 구체적으로 나열해 주세요.
-                  </p>
-                  <Textarea
-                    id="techStack"
-                    value={(formData as StaffFormData).techStack}
-                    onChange={(e) => updateField("techStack", e.target.value)}
-                    placeholder="예: React, TypeScript, Spring Boot, MySQL, Adobe XD 등"
-                    rows={3}
-                    className={validationErrors.techStack ? "border-red-500 focus:ring-red-500" : ""}
-                  />
-                  {validationErrors.techStack && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.techStack}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label htmlFor="portfolio">포트폴리오 (선택)</Label>
-                  <p className="text-sm text-muted-foreground mb-2 mt-1">
-                    본인의 GitHub, 블로그, 노션 등 포트폴리오 링크가 있다면 입력해주세요.
-                  </p>
-                  <Input
-                    id="portfolio"
-                    value={(formData as StaffFormData).portfolio}
-                    onChange={(e) => updateField("portfolio", e.target.value)}
-                    placeholder="https://github.com/username"
-                    className={validationErrors.portfolio ? "border-red-500 focus:ring-red-500" : ""}
-                  />
-                  {validationErrors.portfolio && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.portfolio}</p>
-                  )}
-                </div>
-
-                <div>
-                  <Label>활동 경력 (선택)</Label>
-                  <p className="text-sm text-muted-foreground mb-2 mt-1">
-                    동아리, 프로젝트 경험을 간단히 기술해주세요.
-                  </p>
-                  <div className="space-y-2">
-                    {formData.activities.map((activity, index) => (
-                      <div key={index} className="flex gap-2">
-                        <Input
-                          value={activity}
-                          onChange={(e) => updateActivity(index, e.target.value)}
-                          placeholder="예: XX 동아리 부원 (2023~2024)"
-                        />
-                        {formData.activities.length > 1 && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => removeActivity(index)}
-                          >
-                            삭제
-                          </Button>
-                        )}
-                      </div>
-                    ))}
-                    <Button type="button" variant="outline" onClick={addActivity} className="w-full">
-                      + 경력 추가
-                    </Button>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="backend" id="interest-backend" className={radioItemClass} />
+                    <label htmlFor="interest-backend" className="text-sm cursor-pointer">
+                      백엔드 (데이터 처리)
+                    </label>
                   </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="design" id="interest-design" className={radioItemClass} />
+                    <label htmlFor="interest-design" className="text-sm cursor-pointer">
+                      기획 (PM)
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="unsure" id="interest-unsure" className={radioItemClass} />
+                    <label htmlFor="interest-unsure" className="text-sm cursor-pointer">
+                      디자인
+                    </label>
+                  </div>
+                </RadioGroup>
+                {validationErrors.interestField && (
+                  <p className="text-sm text-red-500 mt-2">{validationErrors.interestField}</p>
+                )}
+              </div>
+
+              <div>
+                <Label>코딩 경험 (선택)</Label>
+                <p className="text-sm text-muted-foreground mb-3 mt-1">
+                  프로그래밍을 접해본 경험이 있나요? (없어도 무관합니다)
+                </p>
+                <RadioGroup
+                  value={(formData as BabyFormData).codingExperience}
+                  onValueChange={(value) => updateField("codingExperience", value)}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="none" id="exp-none" className={radioItemClass} />
+                    <label htmlFor="exp-none" className="text-sm cursor-pointer">
+                      경험 없음 (완전 처음)
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="class" id="exp-class" className={radioItemClass} />
+                    <label htmlFor="exp-class" className="text-sm cursor-pointer">
+                      교양/전공 수업만 들어봄
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="project" id="exp-project" className={radioItemClass} />
+                    <label htmlFor="exp-project" className="text-sm cursor-pointer">
+                      독학이나 프로젝트를 해봄
+                    </label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              <div>
+                <Label>활동 경력 (선택)</Label>
+                <p className="text-sm text-muted-foreground mb-2 mt-1">
+                  동아리, 알바, 혹은 본인이 무언가에 푹 빠져서 했던 활동이 있다면 적어주세요.
+                </p>
+                <div className="space-y-2">
+                  {formData.activities.map((activity, index) => (
+                    <div key={index} className="flex gap-2">
+                      <Input
+                        value={activity}
+                        onChange={(e) => updateActivity(index, e.target.value)}
+                        placeholder="예: XX 동아리 부원 (2023~2024)"
+                      />
+                      {formData.activities.length > 1 && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={() => removeActivity(index)}
+                        >
+                          삭제
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                  <Button type="button" variant="outline" onClick={addActivity} className="w-full">
+                    + 경력 추가
+                  </Button>
                 </div>
               </div>
-            </Card>
-          )}
+            </div>
+          </Card>
 
-          {/* Section 4: Essays - BABY */}
-          {track === "baby" && (
-            <Card className="p-6">
-              <h2 className="text-2xl mb-6 text-primary">4. 에세이</h2>
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="essay1">Q1. 지원 동기 *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    멋쟁이사자처럼 14기에 지원하게 된 솔직한 동기와, 1년 뒤 본인이 기대하는 성장한 모습에 대해 적어주세요.
-                  </p>
-                  <Textarea
-                    id="essay1"
-                    value={formData.essay1}
-                    onChange={(e) => updateField("essay1", e.target.value)}
-                    rows={8}
-                    className={`mt-2 ${validationErrors.essay1 ? "border-red-500 focus:ring-red-500" : ""}`}
-                    placeholder="지원 동기와 기대하는 성장 모습을 작성해주세요..."
-                  />
-                  {validationErrors.essay1 && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay1}</p>
-                  )}
-                  <p className="text-sm text-right text-muted-foreground mt-1">
-                    {formData.essay1.length}/500자
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="essay2">Q2. 몰입 경험 *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    개발 관련이 아니어도 좋습니다. 살면서 가장 힘들었거나 포기하고 싶었던 순간, 혹은 끈기 있게 도전하여 성취감을 느꼈던 경험을 들려주세요.
-                  </p>
-                  <Textarea
-                    id="essay2"
-                    value={formData.essay2}
-                    onChange={(e) => updateField("essay2", e.target.value)}
-                    rows={10}
-                    className={`mt-2 ${validationErrors.essay2 ? "border-red-500 focus:ring-red-500" : ""}`}
-                    placeholder="몰입했던 경험과 그 과정에서 느낀 점을 구체적으로 작성해주세요..."
-                  />
-                  {validationErrors.essay2 && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay2}</p>
-                  )}
-                  <p className="text-sm text-right text-muted-foreground mt-1">
-                    {formData.essay2.length}/600자
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="essay3">Q3. 만들고 싶은 서비스 *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    평소 학교생활이나 일상에서 '이런 게 있으면 좋겠다'라고 느꼈던 불편함이 있나요? 이를 웹 서비스로 만든다면 어떤 모습일지 자유롭게 상상해 보세요.
-                  </p>
-                  <Textarea
-                    id="essay3"
-                    value={formData.essay3}
-                    onChange={(e) => updateField("essay3", e.target.value)}
-                    rows={8}
-                    className={`mt-2 ${validationErrors.essay3 ? "border-red-500 focus:ring-red-500" : ""}`}
-                    placeholder="만들고 싶은 서비스에 대해 자유롭게 작성해주세요..."
-                  />
-                  {validationErrors.essay3 && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay3}</p>
-                  )}
-                  <p className="text-sm text-right text-muted-foreground mt-1">
-                    {formData.essay3.length}/500자
-                  </p>
-                </div>
+          {/* Section 4: Essays */}
+          <Card className="p-6">
+            <h2 className="text-2xl mb-6 text-primary">4. 에세이</h2>
+            <div className="space-y-6">
+              <div>
+                <Label htmlFor="essay1">Q1. 지원 동기 *</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  멋쟁이사자처럼 14기에 지원하게 된 솔직한 동기와, 1년 뒤 본인이 기대하는 성장한 모습에 대해 적어주세요.
+                </p>
+                <Textarea
+                  id="essay1"
+                  value={formData.essay1}
+                  onChange={(e) => updateField("essay1", e.target.value)}
+                  rows={8}
+                  className={`mt-2 ${validationErrors.essay1 ? "border-red-500 focus:ring-red-500" : ""}`}
+                  placeholder="지원 동기와 기대하는 성장 모습을 작성해주세요..."
+                />
+                {validationErrors.essay1 && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.essay1}</p>
+                )}
+                <p className="text-sm text-right text-muted-foreground mt-1">
+                  {formData.essay1.length}/500자
+                </p>
               </div>
-            </Card>
-          )}
 
-          {/* Section 4: Essays - STAFF */}
-          {track === "staff" && (
-            <Card className="p-6">
-              <h2 className="text-2xl mb-6 text-primary">4. 에세이</h2>
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="essay1">Q1. 지원 동기 및 기여 방안 *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    운영진으로 지원한 동기는 무엇이며, 본인의 역량을 발휘하여 14기 아기사자들의 성장에 어떻게, 얼마나 기여할 수 있는지 구체적인 계획을 적어주세요.
-                  </p>
-                  <Textarea
-                    id="essay1"
-                    value={formData.essay1}
-                    onChange={(e) => updateField("essay1", e.target.value)}
-                    rows={10}
-                    className={`mt-2 ${validationErrors.essay1 ? "border-red-500 focus:ring-red-500" : ""}`}
-                    placeholder="지원 동기와 구체적인 기여 방안을 작성해주세요..."
-                  />
-                  {validationErrors.essay1 && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay1}</p>
-                  )}
-                  <p className="text-sm text-right text-muted-foreground mt-1">
-                    {formData.essay1.length}/600자
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="essay2">Q2. 문제 해결 및 협업 *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    팀 프로젝트나 조직 생활 중 마주했던 갈등 상황이나 기술적 난관(Error)을 주도적으로 해결했던 경험을 구체적으로 서술해 주세요.
-                  </p>
-                  <Textarea
-                    id="essay2"
-                    value={formData.essay2}
-                    onChange={(e) => updateField("essay2", e.target.value)}
-                    rows={12}
-                    className={`mt-2 ${validationErrors.essay2 ? "border-red-500 focus:ring-red-500" : ""}`}
-                    placeholder="문제 해결 경험을 구체적으로 작성해주세요..."
-                  />
-                  {validationErrors.essay2 && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay2}</p>
-                  )}
-                  <p className="text-sm text-right text-muted-foreground mt-1">
-                    {formData.essay2.length}/800자
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="essay3">Q3. 교육 및 운영 철학 *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    코딩을 처음 접하는 아기사자들이 어려움에 부딪혀 포기하려 할 때, 운영진으로서 어떻게 동기를 부여하고 이끌어갈 것인지 본인의 생각을 적어주세요.
-                  </p>
-                  <Textarea
-                    id="essay3"
-                    value={formData.essay3}
-                    onChange={(e) => updateField("essay3", e.target.value)}
-                    rows={10}
-                    className={`mt-2 ${validationErrors.essay3 ? "border-red-500 focus:ring-red-500" : ""}`}
-                    placeholder="교육 및 운영 철학을 작성해주세요..."
-                  />
-                  {validationErrors.essay3 && (
-                    <p className="text-sm text-red-500 mt-1">{validationErrors.essay3}</p>
-                  )}
-                  <p className="text-sm text-right text-muted-foreground mt-1">
-                    {formData.essay3.length}/600자
-                  </p>
-                </div>
+              <div>
+                <Label htmlFor="essay2">Q2. 몰입 경험 *</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  개발 관련이 아니어도 좋습니다. 살면서 가장 힘들었거나 포기하고 싶었던 순간, 혹은 끈기 있게 도전하여 성취감을 느꼈던 경험을 들려주세요.
+                </p>
+                <Textarea
+                  id="essay2"
+                  value={formData.essay2}
+                  onChange={(e) => updateField("essay2", e.target.value)}
+                  rows={10}
+                  className={`mt-2 ${validationErrors.essay2 ? "border-red-500 focus:ring-red-500" : ""}`}
+                  placeholder="몰입했던 경험과 그 과정에서 느낀 점을 구체적으로 작성해주세요..."
+                />
+                {validationErrors.essay2 && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.essay2}</p>
+                )}
+                <p className="text-sm text-right text-muted-foreground mt-1">
+                  {formData.essay2.length}/600자
+                </p>
               </div>
-            </Card>
-          )}
+
+              <div>
+                <Label htmlFor="essay3">Q3. 만들고 싶은 서비스 *</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  평소 학교생활이나 일상에서 '이런 게 있으면 좋겠다'라고 느꼈던 불편함이 있나요? 이를 웹 서비스로 만든다면 어떤 모습일지 자유롭게 상상해 보세요.
+                </p>
+                <Textarea
+                  id="essay3"
+                  value={formData.essay3}
+                  onChange={(e) => updateField("essay3", e.target.value)}
+                  rows={8}
+                  className={`mt-2 ${validationErrors.essay3 ? "border-red-500 focus:ring-red-500" : ""}`}
+                  placeholder="만들고 싶은 서비스에 대해 자유롭게 작성해주세요..."
+                />
+                {validationErrors.essay3 && (
+                  <p className="text-sm text-red-500 mt-1">{validationErrors.essay3}</p>
+                )}
+                <p className="text-sm text-right text-muted-foreground mt-1">
+                  {formData.essay3.length}/500자
+                </p>
+              </div>
+            </div>
+          </Card>
         </div>
 
         {turnstileSiteKey && (
