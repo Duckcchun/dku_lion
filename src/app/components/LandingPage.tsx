@@ -1,14 +1,5 @@
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
-import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "./ui/alert-dialog";
 import logoImage from "../../assets/dku_lion.png";
 
 interface LandingPageProps {
@@ -16,12 +7,6 @@ interface LandingPageProps {
 }
 
 export function LandingPage({ onSelectTrack }: LandingPageProps) {
-  const [showStaffAlert, setShowStaffAlert] = useState(false);
-
-  const handleStaffClick = () => {
-    setShowStaffAlert(true);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-blue-50">
       {/* Hero Section */}
@@ -49,7 +34,7 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
           </Button>
 
           <Button
-            onClick={handleStaffClick}
+            onClick={() => onSelectTrack("staff")}
             variant="outline"
             className="flex-1 h-auto py-8 px-6 border-2 border-primary text-primary hover:bg-primary/5 rounded-xl shadow-lg hover:shadow-xl transition-all"
           >
@@ -141,21 +126,6 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
           </div>
         </div>
       </section>
-
-      {/* Staff Alert Dialog */}
-      <AlertDialog open={showStaffAlert} onOpenChange={setShowStaffAlert}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>지원 기간 안내</AlertDialogTitle>
-            <AlertDialogDescription>
-              운영진 지원 기간이 아닙니다.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogAction onClick={() => setShowStaffAlert(false)}>
-            확인
-          </AlertDialogAction>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }
