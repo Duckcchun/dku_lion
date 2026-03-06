@@ -192,14 +192,14 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
       if (!Array.isArray(formData.interviewDates) || formData.interviewDates.length === 0) {
         return c.json({ error: 'At least one interview date must be selected' }, 400);
       }
-      if (!formData.interestField || !['frontend', 'backend', 'design', 'unsure'].includes(formData.interestField)) {
+      if (!formData.interestField || !['frontend', 'backend', 'planning', 'design', 'unsure'].includes(formData.interestField)) {
         return c.json({ error: 'Invalid interest field' }, 400);
       }
       if (!formData.essay1?.trim() || !formData.essay2?.trim() || !formData.essay3?.trim()) {
         return c.json({ error: 'All essays are required' }, 400);
       }
     } else if (track === 'staff') {
-      if (!formData.position || !['planning', 'frontend', 'backend', 'design'].includes(formData.position)) {
+      if (!formData.position || !['pm', 'planning', 'frontend', 'backend', 'design'].includes(formData.position)) {
         return c.json({ error: 'Invalid position' }, 400);
       }
       if (!formData.techStack?.trim()) {
@@ -353,6 +353,20 @@ app.delete('/server/make-server-5a2ed2de/applications/:id', async (c) => {
 function formatEmailBody(track: string, formData: any): string {
   const trackName = track === 'baby' ? '아기사자' : '운영진';
   const date = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+  const interestFieldLabelMap: Record<string, string> = {
+    frontend: '프론트엔드',
+    backend: '백엔드',
+    planning: '기획(PM)',
+    design: '디자인',
+    unsure: '아직 미정',
+  };
+  const staffPositionLabelMap: Record<string, string> = {
+    backend: '백엔드',
+    frontend: '프론트엔드',
+    design: '디자인',
+    pm: '기획(PM)',
+    planning: '기획(PM)',
+  };
   
   let html = `
     <div style="font-family: 'Pretendard', -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f8f9fa;">
@@ -388,7 +402,7 @@ function formatEmailBody(track: string, formData: any): string {
     html += `
         <h2 style="color: #00467F; border-bottom: 2px solid #00467F; padding-bottom: 10px;">💻 관심 분야 및 경험</h2>
         <table style="width: 100%; margin-bottom: 30px;">
-          <tr><td style="padding: 8px 0; color: #6c757d; width: 120px;">관심 분야</td><td style="padding: 8px 0;">${formData.interestField}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6c757d; width: 120px;">관심 분야</td><td style="padding: 8px 0;">${interestFieldLabelMap[formData.interestField] || formData.interestField}</td></tr>
           <tr><td style="padding: 8px 0; color: #6c757d;">코딩 경험</td><td style="padding: 8px 0;">${formData.codingExperience}</td></tr>
           <tr><td style="padding: 8px 0; color: #6c757d; vertical-align: top;">동아리/대외활동</td><td style="padding: 8px 0;">${formData.activities.join('<br>')}</td></tr>
         </table>
@@ -411,7 +425,7 @@ function formatEmailBody(track: string, formData: any): string {
     html += `
         <h2 style="color: #00467F; border-bottom: 2px solid #00467F; padding-bottom: 10px;">💼 역량 및 경험</h2>
         <table style="width: 100%; margin-bottom: 30px;">
-          <tr><td style="padding: 8px 0; color: #6c757d; width: 120px;">지원 직무</td><td style="padding: 8px 0;">${formData.position}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6c757d; width: 120px;">지원 직무</td><td style="padding: 8px 0;">${staffPositionLabelMap[formData.position] || formData.position}</td></tr>
           <tr><td style="padding: 8px 0; color: #6c757d; vertical-align: top;">기술 스택</td><td style="padding: 8px 0;">${formData.techStack.replace(/\n/g, '<br>')}</td></tr>
           <tr><td style="padding: 8px 0; color: #6c757d; vertical-align: top;">포트폴리오</td><td style="padding: 8px 0;">${formData.portfolio.replace(/\n/g, '<br>')}</td></tr>
           <tr><td style="padding: 8px 0; color: #6c757d; vertical-align: top;">동아리/대외활동</td><td style="padding: 8px 0;">${formData.activities.join('<br>')}</td></tr>

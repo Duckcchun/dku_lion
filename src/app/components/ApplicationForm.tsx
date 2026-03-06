@@ -645,15 +645,21 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="planning" id="interest-planning" className={radioItemClass} />
+                        <label htmlFor="interest-planning" className="text-sm cursor-pointer">
+                          기획 (PM)
+                        </label>
+                      </div>
+                      <div className="flex items-center space-x-2">
                         <RadioGroupItem value="design" id="interest-design" className={radioItemClass} />
                         <label htmlFor="interest-design" className="text-sm cursor-pointer">
-                          기획 (PM)
+                          디자인
                         </label>
                       </div>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="unsure" id="interest-unsure" className={radioItemClass} />
                         <label htmlFor="interest-unsure" className="text-sm cursor-pointer">
-                          디자인
+                          아직 잘 모르겠어요
                         </label>
                       </div>
                     </RadioGroup>
