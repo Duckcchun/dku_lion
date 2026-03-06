@@ -297,6 +297,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     setIsSubmitting(true);
 
     try {
+      const normalizedFormData =
+        track === "baby" && (formData as BabyFormData).interestField === "pm"
+          ? { ...formData, interestField: "planning" }
+          : formData;
+
       // Edge Function으로 제출 (메일 발송 포함)
       const supabaseUrl = `https://${projectId}.supabase.co`;
       const response = await fetch(
@@ -309,7 +314,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
           },
           body: JSON.stringify({
             track,
-            formData,
+            formData: normalizedFormData,
             captchaToken,
           }),
         }

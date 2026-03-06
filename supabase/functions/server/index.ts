@@ -192,7 +192,8 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
       if (!Array.isArray(formData.interviewDates) || formData.interviewDates.length === 0) {
         return c.json({ error: 'At least one interview date must be selected' }, 400);
       }
-      if (!formData.interestField || !['frontend', 'backend', 'planning', 'design', 'unsure'].includes(formData.interestField)) {
+      // Backward compatibility: some older clients may send `pm` for planning.
+      if (!formData.interestField || !['frontend', 'backend', 'planning', 'pm', 'design', 'unsure'].includes(formData.interestField)) {
         return c.json({ error: 'Invalid interest field' }, 400);
       }
       if (!formData.essay1?.trim() || !formData.essay2?.trim() || !formData.essay3?.trim()) {
@@ -357,6 +358,7 @@ function formatEmailBody(track: string, formData: any): string {
     frontend: '프론트엔드',
     backend: '백엔드',
     planning: '기획(PM)',
+    pm: '기획(PM)',
     design: '디자인',
     unsure: '아직 미정',
   };
