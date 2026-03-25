@@ -186,11 +186,12 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
       return c.json({ error: 'Invalid phone format' }, 400);
     }
 
+    if (!Array.isArray(formData.interviewDates) || formData.interviewDates.length === 0) {
+      return c.json({ error: 'At least one interview date must be selected' }, 400);
+    }
+
     // Track-specific validation
     if (track === 'baby') {
-      if (!Array.isArray(formData.interviewDates) || formData.interviewDates.length === 0) {
-        return c.json({ error: 'At least one interview date must be selected' }, 400);
-      }
       // Backward compatibility: some older clients may send `pm` for planning.
       if (!formData.interestField || !['frontend', 'backend', 'planning', 'pm', 'design', 'unsure'].includes(formData.interestField)) {
         return c.json({ error: 'Invalid interest field' }, 400);

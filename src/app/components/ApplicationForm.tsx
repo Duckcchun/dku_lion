@@ -180,10 +180,12 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     if (!formData.schedule1?.trim()) errors.schedule1 = "1학기 계획은 필수입니다";
     if (!formData.schedule2?.trim()) errors.schedule2 = "여름방학 계획은 필수입니다";
     if (!formData.schedule3?.trim()) errors.schedule3 = "2학기 계획은 필수입니다";
+    if (!Array.isArray(formData.interviewDates) || formData.interviewDates.length === 0) {
+      errors.interviewDates = "면접 가능 시간을 선택해주세요";
+    }
     
     if (track === "baby") {
       const babyData = formData as BabyFormData;
-      if (babyData.interviewDates.length === 0) errors.interviewDates = "면접 가능 시간을 선택해주세요";
       if (!babyData.interestField) errors.interestField = "관심 분야를 선택해주세요";
       if (!babyData.essay1?.trim()) errors.essay1 = "지원 동기는 필수입니다";
       if (!babyData.essay2?.trim()) errors.essay2 = "몰입 경험은 필수입니다";
@@ -572,63 +574,61 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
                 </div>
               </div>
 
-              {track === "baby" && (
-                <div>
-                  <Label>면접 가능 시간 (중복 선택 가능) *</Label>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    가능한 시간을 모두 선택해주세요.
-                  </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-fri"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("이번주 금요일 오후 6시 이후")}
-                        onCheckedChange={() => toggleInterviewDate("이번주 금요일 오후 6시 이후")}
-                      />
-                      <label htmlFor="interview-fri" className="text-sm cursor-pointer">
-                        이번주 금요일 오후 6시 이후
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-sat-am"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("토요일 오전")}
-                        onCheckedChange={() => toggleInterviewDate("토요일 오전")}
-                      />
-                      <label htmlFor="interview-sat-am" className="text-sm cursor-pointer">
-                        토요일 오전
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-sun-am"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("일요일 오전")}
-                        onCheckedChange={() => toggleInterviewDate("일요일 오전")}
-                      />
-                      <label htmlFor="interview-sun-am" className="text-sm cursor-pointer">
-                        일요일 오전
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-other"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("그외")}
-                        onCheckedChange={() => toggleInterviewDate("그외")}
-                      />
-                      <label htmlFor="interview-other" className="text-sm cursor-pointer">
-                        그외
-                      </label>
-                    </div>
+              <div>
+                <Label>면접 가능 시간 (중복 선택 가능) *</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  가능한 시간을 모두 선택해주세요.
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="interview-fri"
+                      className={checkboxClass}
+                      checked={formData.interviewDates.includes("3/27 (금) 오후 6시 이후")}
+                      onCheckedChange={() => toggleInterviewDate("3/27 (금) 오후 6시 이후")}
+                    />
+                    <label htmlFor="interview-fri" className="text-sm cursor-pointer">
+                      3/27 (금) 오후 6시 이후
+                    </label>
                   </div>
-                  {validationErrors.interviewDates && (
-                    <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
-                  )}
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="interview-sat-am"
+                      className={checkboxClass}
+                      checked={formData.interviewDates.includes("3/28 (토) 오전")}
+                      onCheckedChange={() => toggleInterviewDate("3/28 (토) 오전")}
+                    />
+                    <label htmlFor="interview-sat-am" className="text-sm cursor-pointer">
+                      3/28 (토) 오전
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="interview-sun-am"
+                      className={checkboxClass}
+                      checked={formData.interviewDates.includes("3/29 (일) 오전")}
+                      onCheckedChange={() => toggleInterviewDate("3/29 (일) 오전")}
+                    />
+                    <label htmlFor="interview-sun-am" className="text-sm cursor-pointer">
+                      3/29 (일) 오전
+                    </label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="interview-other"
+                      className={checkboxClass}
+                      checked={formData.interviewDates.includes("그외")}
+                      onCheckedChange={() => toggleInterviewDate("그외")}
+                    />
+                    <label htmlFor="interview-other" className="text-sm cursor-pointer">
+                      그외
+                    </label>
+                  </div>
                 </div>
-              )}
+                {validationErrors.interviewDates && (
+                  <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
+                )}
+              </div>
             </div>
           </Card>
 
