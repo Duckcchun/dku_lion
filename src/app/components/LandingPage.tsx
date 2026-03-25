@@ -99,10 +99,6 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
                 <span>면접 일정</span>
                 <span className="text-primary text-right shrink-0">개별 연락 예정</span>
               </div>
-              <div className="flex items-center justify-between gap-6">
-                <span>합격자 OT</span>
-                <span className="text-primary text-right shrink-0">3월 18일</span>
-              </div>
             </div>
           </Card>
         </div>
