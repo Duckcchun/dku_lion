@@ -188,10 +188,6 @@ app.post('/server/make-server-5a2ed2de/applications', async (c) => {
 
     // Track-specific validation
     if (track === 'baby') {
-      // Validate interview dates for baby track only
-      if (!Array.isArray(formData.interviewDates) || formData.interviewDates.length === 0) {
-        return c.json({ error: 'At least one interview date must be selected' }, 400);
-      }
       // Backward compatibility: some older clients may send `pm` for planning.
       if (!formData.interestField || !['frontend', 'backend', 'planning', 'pm', 'design', 'unsure'].includes(formData.interestField)) {
         return c.json({ error: 'Invalid interest field' }, 400);
@@ -396,7 +392,7 @@ function formatEmailBody(track: string, formData: any): string {
           <tr><td style="padding: 8px 0; color: #6c757d; width: 120px;">수요일 18:30</td><td style="padding: 8px 0;">${formData.schedule1}</td></tr>
           <tr><td style="padding: 8px 0; color: #6c757d;">토요일 13:00</td><td style="padding: 8px 0;">${formData.schedule2}</td></tr>
           <tr><td style="padding: 8px 0; color: #6c757d;">토요일 15:00</td><td style="padding: 8px 0;">${formData.schedule3}</td></tr>
-          <tr><td style="padding: 8px 0; color: #6c757d;">면접 가능일</td><td style="padding: 8px 0;">${formData.interviewDates.join(', ')}</td></tr>
+          <tr><td style="padding: 8px 0; color: #6c757d;">면접 일정</td><td style="padding: 8px 0;">개별 연락 예정</td></tr>
         </table>
   `;
 

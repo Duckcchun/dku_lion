@@ -93,11 +93,11 @@ export function LandingPage({ onSelectTrack }: LandingPageProps) {
             <div className="space-y-3 text-gray-700">
               <div className="flex items-center justify-between gap-6">
                 <span>서류 마감</span>
-                <span className="text-primary text-right shrink-0">3월 10일</span>
+                <span className="text-primary text-right shrink-0">3월 27일까지</span>
               </div>
               <div className="flex items-center justify-between gap-6">
-                <span>대면 면접</span>
-                <span className="text-primary text-right shrink-0">3월 12일 ~ 3월 13일</span>
+                <span>면접 일정</span>
+                <span className="text-primary text-right shrink-0">개별 연락 예정</span>
               </div>
               <div className="flex items-center justify-between gap-6">
                 <span>합격자 OT</span>

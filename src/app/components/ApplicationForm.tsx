@@ -3,7 +3,6 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
-import { Checkbox } from "./ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Card } from "./ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
@@ -155,8 +154,6 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
   const radioItemClass =
     "h-5 w-5 rounded-full border-2 border-slate-300 transition-all data-[state=checked]:border-primary data-[state=checked]:bg-white data-[state=checked]:shadow-inner";
-  const checkboxClass =
-    "h-4 w-4 border-slate-300 data-[state=checked]:border-primary data-[state=checked]:bg-primary";
 
   const trackName = track === "baby" ? "아기사자" : "운영진";
   const storageKey = `likelion-14th-${track}-form`;
@@ -184,7 +181,6 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     if (track === "baby") {
       const babyData = formData as BabyFormData;
       if (!babyData.interestField) errors.interestField = "관심 분야를 선택해주세요";
-      if (babyData.interviewDates.length === 0) errors.interviewDates = "면접 가능 시간을 선택해주세요";
       if (!babyData.essay1?.trim()) errors.essay1 = "지원 동기는 필수입니다";
       if (!babyData.essay2?.trim()) errors.essay2 = "몰입 경험은 필수입니다";
       if (!babyData.essay3?.trim()) errors.essay3 = "만들고 싶은 서비스는 필수입니다";
@@ -254,15 +250,6 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     setFormData((prev) => ({
       ...prev,
       activities: prev.activities.filter((_, i) => i !== index),
-    }));
-  };
-
-  const toggleInterviewDate = (date: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      interviewDates: prev.interviewDates.includes(date)
-        ? prev.interviewDates.filter((d) => d !== date)
-        : [...prev.interviewDates, date],
     }));
   };
 
@@ -574,48 +561,11 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
               {track === "baby" && (
                 <div>
-                  <Label>면접 가능 시간 *</Label>
+                  <Label>면접 일정 안내</Label>
                   <p className="text-sm text-muted-foreground mb-2">
-                    가능한 날짜를 모두 선택해주세요.
+                    서류 마감 후 면접 일정은 대상자에게 개별 연락 예정입니다.
                   </p>
-                  <div className="space-y-2">
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-thu"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("3월 12일(목)")}
-                        onCheckedChange={() => toggleInterviewDate("3월 12일(목)")}
-                      />
-                      <label htmlFor="interview-thu" className="text-sm cursor-pointer">
-                        3월 12일(목)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-fri"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("3월 13일(금)")}
-                        onCheckedChange={() => toggleInterviewDate("3월 13일(금)")}
-                      />
-                      <label htmlFor="interview-fri" className="text-sm cursor-pointer">
-                        3월 13일(금)
-                      </label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="interview-other"
-                        className={checkboxClass}
-                        checked={formData.interviewDates.includes("그 외 (다른 날짜)")}
-                        onCheckedChange={() => toggleInterviewDate("그 외 (다른 날짜)")}
-                      />
-                      <label htmlFor="interview-other" className="text-sm cursor-pointer">
-                        그 외 (다른 날짜)
-                      </label>
-                    </div>
-                  </div>
-                  {validationErrors.interviewDates && (
-                    <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
-                  )}
+                  <p className="text-sm text-primary">면접 일정은 개별 연락 예정입니다.</p>
                 </div>
               )}
             </div>
