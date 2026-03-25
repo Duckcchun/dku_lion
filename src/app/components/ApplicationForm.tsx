@@ -3,6 +3,7 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
+import { Checkbox } from "./ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "./ui/radio-group";
 import { Card } from "./ui/card";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "./ui/alert-dialog";
@@ -154,6 +155,8 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
   const radioItemClass =
     "h-5 w-5 rounded-full border-2 border-slate-300 transition-all data-[state=checked]:border-primary data-[state=checked]:bg-white data-[state=checked]:shadow-inner";
+  const checkboxClass =
+    "h-4 w-4 border-slate-300 data-[state=checked]:border-primary data-[state=checked]:bg-primary";
 
   const trackName = track === "baby" ? "아기사자" : "운영진";
   const storageKey = `likelion-14th-${track}-form`;
@@ -180,6 +183,7 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     
     if (track === "baby") {
       const babyData = formData as BabyFormData;
+      if (babyData.interviewDates.length === 0) errors.interviewDates = "면접 가능 시간을 선택해주세요";
       if (!babyData.interestField) errors.interestField = "관심 분야를 선택해주세요";
       if (!babyData.essay1?.trim()) errors.essay1 = "지원 동기는 필수입니다";
       if (!babyData.essay2?.trim()) errors.essay2 = "몰입 경험은 필수입니다";
@@ -250,6 +254,15 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
     setFormData((prev) => ({
       ...prev,
       activities: prev.activities.filter((_, i) => i !== index),
+    }));
+  };
+
+  const toggleInterviewDate = (slot: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      interviewDates: prev.interviewDates.includes(slot)
+        ? prev.interviewDates.filter((d) => d !== slot)
+        : [...prev.interviewDates, slot],
     }));
   };
 
@@ -561,11 +574,59 @@ export function ApplicationForm({ track, onSubmit, onBack }: ApplicationFormProp
 
               {track === "baby" && (
                 <div>
-                  <Label>면접 일정 안내</Label>
+                  <Label>면접 가능 시간 (중복 선택 가능) *</Label>
                   <p className="text-sm text-muted-foreground mb-2">
-                    서류 마감 후 면접 일정은 대상자에게 개별 연락 예정입니다.
+                    가능한 시간을 모두 선택해주세요.
                   </p>
-                  <p className="text-sm text-primary">면접 일정은 개별 연락 예정입니다.</p>
+                  <div className="space-y-2">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="interview-fri"
+                        className={checkboxClass}
+                        checked={formData.interviewDates.includes("이번주 금요일 오후 6시 이후")}
+                        onCheckedChange={() => toggleInterviewDate("이번주 금요일 오후 6시 이후")}
+                      />
+                      <label htmlFor="interview-fri" className="text-sm cursor-pointer">
+                        이번주 금요일 오후 6시 이후
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="interview-sat-am"
+                        className={checkboxClass}
+                        checked={formData.interviewDates.includes("토요일 오전")}
+                        onCheckedChange={() => toggleInterviewDate("토요일 오전")}
+                      />
+                      <label htmlFor="interview-sat-am" className="text-sm cursor-pointer">
+                        토요일 오전
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="interview-sun-am"
+                        className={checkboxClass}
+                        checked={formData.interviewDates.includes("일요일 오전")}
+                        onCheckedChange={() => toggleInterviewDate("일요일 오전")}
+                      />
+                      <label htmlFor="interview-sun-am" className="text-sm cursor-pointer">
+                        일요일 오전
+                      </label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="interview-other"
+                        className={checkboxClass}
+                        checked={formData.interviewDates.includes("그외")}
+                        onCheckedChange={() => toggleInterviewDate("그외")}
+                      />
+                      <label htmlFor="interview-other" className="text-sm cursor-pointer">
+                        그외
+                      </label>
+                    </div>
+                  </div>
+                  {validationErrors.interviewDates && (
+                    <p className="text-sm text-red-500 mt-2">{validationErrors.interviewDates}</p>
+                  )}
                 </div>
               )}
             </div>
